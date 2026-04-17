@@ -81,4 +81,25 @@ public sealed class SimulationRuntimeState
     public List<TimelineEvent> Timeline { get; init; } = new();
     public HashSet<string> IncidentUniqueness { get; init; } = new();
     public HashSet<string> EventUniqueness { get; init; } = new();
+    public WorldDataRuntime WorldData { get; init; } = new();
+}
+
+public sealed class WorldDataRuntime
+{
+    public string StaticDataPolicy { get; set; } = "Initial setup or Update Real World Data";
+    public string WeatherPolicy { get; set; } = "Game start and every 30 minutes";
+    public string WorldSnapshotSource { get; set; } = string.Empty;
+    public string WeatherSource { get; set; } = "mock-live-weather";
+    public double QueryLat { get; set; }
+    public double QueryLon { get; set; }
+    public DateTimeOffset WorldSnapshotCapturedAt { get; set; }
+    public DateTimeOffset LastWorldDataRefreshAt { get; set; }
+    public DateTimeOffset LastWeatherRefreshAt { get; set; }
+    public DateTimeOffset NextWeatherRefreshAt { get; set; }
+    public int WeatherRefreshIntervalMinutes { get; set; } = 30;
+    public bool AutoWeatherRefreshEnabled { get; set; } = true;
+    public double CurrentWeatherSeverity { get; set; }
+    public string CurrentWeatherBand { get; set; } = "Nominal";
+    public SessionDevFeatureFlagsDto DevFeatures { get; set; } = new();
+    public RealWorldWeatherSnapshotDto WeatherSnapshot { get; set; } = new();
 }

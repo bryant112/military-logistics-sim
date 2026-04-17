@@ -39,6 +39,7 @@ public sealed class WorldStateResponse
     public DateTimeOffset SimulatedTime { get; set; }
     public string Status { get; set; } = string.Empty;
     public LogisticsOverviewDto Overview { get; set; } = new();
+    public WorldDataStatusResponse WorldData { get; set; } = new();
     public List<MovementStateDto> Movements { get; set; } = new();
     public List<AssetStateDto> Assets { get; set; } = new();
     public List<ShipmentStateDto> Shipments { get; set; } = new();
@@ -124,4 +125,52 @@ public sealed class EnrichmentResponse
 {
     public Guid SessionId { get; set; }
     public List<EnrichmentSnapshot> Routes { get; set; } = new();
+}
+
+public sealed class WorldDataStatusResponse
+{
+    public Guid SessionId { get; set; }
+    public string StaticDataPolicy { get; set; } = "Initial setup or Update Real World Data";
+    public string WeatherPolicy { get; set; } = "Game start and every 30 minutes";
+    public string WorldSnapshotSource { get; set; } = string.Empty;
+    public string WeatherSource { get; set; } = string.Empty;
+    public DateTimeOffset WorldSnapshotCapturedAt { get; set; }
+    public DateTimeOffset LastWorldDataRefreshAt { get; set; }
+    public DateTimeOffset LastWeatherRefreshAt { get; set; }
+    public DateTimeOffset NextWeatherRefreshAt { get; set; }
+    public int WeatherRefreshIntervalMinutes { get; set; } = 30;
+    public bool AutoWeatherRefreshEnabled { get; set; } = true;
+    public double CurrentWeatherSeverity { get; set; }
+    public string CurrentWeatherBand { get; set; } = string.Empty;
+    public SessionDevFeatureFlagsDto DevFeatures { get; set; } = new();
+    public RealWorldWeatherSnapshotDto Weather { get; set; } = new();
+}
+
+public sealed class SessionDevFeatureFlagsDto
+{
+    public bool UseRealWorldWeather { get; set; } = true;
+    public bool AutoWeatherRefreshEnabled { get; set; } = true;
+    public bool AllowManualWorldDataRefresh { get; set; } = true;
+    public bool AllowManualWeatherRefresh { get; set; } = true;
+    public bool FreezeStaticRwdDuringRun { get; set; } = true;
+    public bool UseMockWeatherFallback { get; set; } = true;
+}
+
+public sealed class RealWorldWeatherSnapshotDto
+{
+    public double QueryLat { get; set; }
+    public double QueryLon { get; set; }
+    public string Summary { get; set; } = string.Empty;
+    public string DetailedForecast { get; set; } = string.Empty;
+    public int TemperatureF { get; set; }
+    public string TemperatureTrend { get; set; } = string.Empty;
+    public int? WindSpeedMph { get; set; }
+    public string WindDirection { get; set; } = string.Empty;
+    public int? PrecipitationChancePercent { get; set; }
+    public double Severity { get; set; }
+    public string SeverityBand { get; set; } = string.Empty;
+    public DateTimeOffset ObservedAt { get; set; }
+    public string Source { get; set; } = string.Empty;
+    public string GridId { get; set; } = string.Empty;
+    public string ForecastOfficeUrl { get; set; } = string.Empty;
 }

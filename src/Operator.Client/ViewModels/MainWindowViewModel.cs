@@ -29,6 +29,14 @@ public partial class MainWindowViewModel : ViewModelBase
     private double _propagandaFactor = 0.35;
     private string _planningStatus = "AO planner idle.";
     private string _transportationSummary = "No imported transport data loaded yet.";
+    private string _worldDataOverview = "World snapshot not loaded yet.";
+    private string _weatherOverview = "Weather not loaded yet.";
+    private bool _useRealWorldWeather = true;
+    private bool _autoWeatherRefreshEnabled = true;
+    private bool _allowManualWorldDataRefresh = true;
+    private bool _allowManualWeatherRefresh = true;
+    private bool _freezeStaticRwdDuringRun = true;
+    private bool _useMockWeatherFallback = true;
 
     public string StatusMessage
     {
@@ -126,6 +134,54 @@ public partial class MainWindowViewModel : ViewModelBase
         private set => SetProperty(ref _transportationSummary, value);
     }
 
+    public string WorldDataOverview
+    {
+        get => _worldDataOverview;
+        private set => SetProperty(ref _worldDataOverview, value);
+    }
+
+    public string WeatherOverview
+    {
+        get => _weatherOverview;
+        private set => SetProperty(ref _weatherOverview, value);
+    }
+
+    public bool UseRealWorldWeather
+    {
+        get => _useRealWorldWeather;
+        set => SetProperty(ref _useRealWorldWeather, value);
+    }
+
+    public bool AutoWeatherRefreshEnabled
+    {
+        get => _autoWeatherRefreshEnabled;
+        set => SetProperty(ref _autoWeatherRefreshEnabled, value);
+    }
+
+    public bool AllowManualWorldDataRefresh
+    {
+        get => _allowManualWorldDataRefresh;
+        set => SetProperty(ref _allowManualWorldDataRefresh, value);
+    }
+
+    public bool AllowManualWeatherRefresh
+    {
+        get => _allowManualWeatherRefresh;
+        set => SetProperty(ref _allowManualWeatherRefresh, value);
+    }
+
+    public bool FreezeStaticRwdDuringRun
+    {
+        get => _freezeStaticRwdDuringRun;
+        set => SetProperty(ref _freezeStaticRwdDuringRun, value);
+    }
+
+    public bool UseMockWeatherFallback
+    {
+        get => _useMockWeatherFallback;
+        set => SetProperty(ref _useMockWeatherFallback, value);
+    }
+
     public ObservableCollection<MovementStateDto> Movements { get; } = new();
     public ObservableCollection<IncidentDto> Incidents { get; } = new();
     public ObservableCollection<AssetStateDto> Assets { get; } = new();
@@ -147,6 +203,9 @@ public partial class MainWindowViewModel : ViewModelBase
     public IAsyncRelayCommand PauseCommand { get; }
     public IAsyncRelayCommand ResetCommand { get; }
     public IAsyncRelayCommand RefreshCommand { get; }
+    public IAsyncRelayCommand ApplyDevFeaturesCommand { get; }
+    public IAsyncRelayCommand UpdateWorldDataCommand { get; }
+    public IAsyncRelayCommand RefreshWeatherCommand { get; }
 
     public MainWindowViewModel()
     {
@@ -156,6 +215,9 @@ public partial class MainWindowViewModel : ViewModelBase
         PauseCommand = new AsyncRelayCommand(PauseAsync);
         ResetCommand = new AsyncRelayCommand(ResetAsync);
         RefreshCommand = new AsyncRelayCommand(RefreshAsync);
+        ApplyDevFeaturesCommand = new AsyncRelayCommand(ApplyDevFeaturesAsync);
+        UpdateWorldDataCommand = new AsyncRelayCommand(UpdateWorldDataAsync);
+        RefreshWeatherCommand = new AsyncRelayCommand(RefreshWeatherAsync);
     }
 
     private async Task PlanAoAsync()
@@ -305,8 +367,9 @@ public partial class MainWindowViewModel : ViewModelBase
             var timeline = await _httpClient.GetFromJsonAsync<TimelineResponse>($"/sessions/{_sessionId}/timeline");
             var enrichment = await _httpClient.GetFromJsonAsync<EnrichmentResponse>($"/sessions/{_sessionId}/enrichment");
             var sitrep = await _httpClient.GetFromJsonAsync<SitrepResponse>($"/sessions/{_sessionId}/sitrep");
+            var worldData = await _httpClient.GetFromJsonAsync<WorldDataStatusResponse>($"/sessions/{_sessionId}/world-data");
 
-            if (state is null || timeline is null || enrichment is null || sitrep is null)
+            if (state is null || timeline is null || enrichment is null || sitrep is null || worldData is null)
             {
                 StatusMessage = "Refresh returned incomplete payloads.";
                 return;
@@ -322,11 +385,89 @@ public partial class MainWindowViewModel : ViewModelBase
             SimulationStatus = $"{state.Status} @ tick {state.Tick} ({state.SimulatedTime:O})";
             LogisticsOverview = $"Reporting {state.Overview.ReportingQuality:P0} | Rhythm {state.Overview.SustainmentRhythmAdherence:P0} | Loads {state.Overview.ConfiguredLoadQuality:P0} | Avg fatigue {state.Overview.AverageCrewFatigueIndex:P0} | Avg morale {state.Overview.AverageMorale:P0} | Avg RSI {state.Overview.AverageRouteSeverityIndex:P0} | Avg cargo risk {state.Overview.AverageCargoDamageRisk:P0} | Avg maint backlog {state.Overview.AverageMaintenanceBacklog:F1}";
             SitrepOverview = $"{sitrep.OverallStatus} | Delayed {sitrep.DelayedMovements} | Incidents {sitrep.ActiveIncidents} | Critical assets {sitrep.CriticalAssets}";
+            UseRealWorldWeather = worldData.DevFeatures.UseRealWorldWeather;
+            AutoWeatherRefreshEnabled = worldData.DevFeatures.AutoWeatherRefreshEnabled;
+            AllowManualWorldDataRefresh = worldData.DevFeatures.AllowManualWorldDataRefresh;
+            AllowManualWeatherRefresh = worldData.DevFeatures.AllowManualWeatherRefresh;
+            FreezeStaticRwdDuringRun = worldData.DevFeatures.FreezeStaticRwdDuringRun;
+            UseMockWeatherFallback = worldData.DevFeatures.UseMockWeatherFallback;
+            WorldDataOverview = $"RWD snapshot {worldData.WorldSnapshotCapturedAt:yyyy-MM-dd HH:mm} | last static refresh {worldData.LastWorldDataRefreshAt:yyyy-MM-dd HH:mm} | source {worldData.WorldSnapshotSource}";
+            WeatherOverview = $"{worldData.Weather.Source} | {worldData.Weather.Summary} | {worldData.Weather.TemperatureF}F | wind {(worldData.Weather.WindSpeedMph?.ToString() ?? "?")} mph | precip {(worldData.Weather.PrecipitationChancePercent?.ToString() ?? "?")}% | {worldData.CurrentWeatherBand} {worldData.CurrentWeatherSeverity:P0} | next auto {worldData.NextWeatherRefreshAt:HH:mm}";
             StatusMessage = "Refresh complete.";
         }
         catch (Exception ex)
         {
             StatusMessage = $"Refresh failed: {ex.Message}";
+        }
+    }
+
+    private async Task ApplyDevFeaturesAsync()
+    {
+        if (!EnsureSession())
+        {
+            return;
+        }
+
+        try
+        {
+            var request = new SessionDevFeatureFlagsDto
+            {
+                UseRealWorldWeather = UseRealWorldWeather,
+                AutoWeatherRefreshEnabled = AutoWeatherRefreshEnabled,
+                AllowManualWorldDataRefresh = AllowManualWorldDataRefresh,
+                AllowManualWeatherRefresh = AllowManualWeatherRefresh,
+                FreezeStaticRwdDuringRun = FreezeStaticRwdDuringRun,
+                UseMockWeatherFallback = UseMockWeatherFallback
+            };
+
+            var response = await _httpClient.PutAsJsonAsync($"/sessions/{_sessionId}/dev-features", request);
+            response.EnsureSuccessStatusCode();
+            StatusMessage = "Dev feature toggles applied.";
+            await RefreshAsync();
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Apply dev features failed: {ex.Message}";
+        }
+    }
+
+    private async Task UpdateWorldDataAsync()
+    {
+        if (!EnsureSession())
+        {
+            return;
+        }
+
+        try
+        {
+            var response = await _httpClient.PostAsync($"/sessions/{_sessionId}/world-data/refresh", null);
+            response.EnsureSuccessStatusCode();
+            StatusMessage = "RWD snapshot refreshed.";
+            await RefreshAsync();
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Update RWD failed: {ex.Message}";
+        }
+    }
+
+    private async Task RefreshWeatherAsync()
+    {
+        if (!EnsureSession())
+        {
+            return;
+        }
+
+        try
+        {
+            var response = await _httpClient.PostAsync($"/sessions/{_sessionId}/weather/refresh", null);
+            response.EnsureSuccessStatusCode();
+            StatusMessage = "Weather refreshed.";
+            await RefreshAsync();
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Weather refresh failed: {ex.Message}";
         }
     }
 

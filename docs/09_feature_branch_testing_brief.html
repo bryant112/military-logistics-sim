@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Military Logistics Sim - Feature Branch Testing Brief</title>
+  <style>
+    @page { size: Letter; margin: 0.45in; }
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: #111;
+      background: #fff;
+      margin: 0;
+      font-size: 10.5pt;
+      line-height: 1.28;
+    }
+    h1, h2 { margin: 0 0 6px 0; }
+    h1 {
+      font-size: 20pt;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border-bottom: 3px solid #556b2f;
+      padding-bottom: 8px;
+    }
+    h2 {
+      font-size: 12pt;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #3d4f1c;
+      margin-top: 12px;
+      border-bottom: 1px solid #a79b6a;
+      padding-bottom: 2px;
+    }
+    .meta {
+      margin: 8px 0 10px 0;
+      font-size: 9.5pt;
+      color: #444;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    ul {
+      margin: 6px 0 0 18px;
+      padding: 0;
+    }
+    li { margin: 0 0 4px 0; }
+    .checklist li::marker { content: "[ ] "; }
+    .callout {
+      border: 1px solid #6b5b3c;
+      background: #f7f1df;
+      padding: 8px 10px;
+      margin-top: 8px;
+    }
+    .small { font-size: 9pt; }
+    .notes {
+      margin-top: 12px;
+      border-top: 2px dashed #777;
+      padding-top: 8px;
+    }
+    .line {
+      border-bottom: 1px solid #888;
+      height: 16px;
+      margin: 6px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Feature Branch Testing Brief</h1>
+  <div class="meta">
+    <strong>Date:</strong> 2026-04-17 |
+    <strong>Project:</strong> Military Logistics Sim |
+    <strong>Use:</strong> Quick manual test sheet / hand notes / feedback capture
+  </div>
+
+  <div class="grid">
+    <div>
+      <h2>Status Overview</h2>
+      <ul>
+        <li>Core sim loop, REST API, and operator UI are usable for smoke testing.</li>
+        <li>Upper Cumberland RWD is seeded for AO planning, support framing, and realism experiments.</li>
+        <li>Real weather is first pass only; treat it as a realism layer, not a final environment model.</li>
+        <li>MTS now supports feature-by-feature and mixed-combination testing.</li>
+        <li>Several systems are still prototype-grade and should be judged for direction first.</li>
+      </ul>
+
+      <h2>Testing Targets</h2>
+      <ul class="checklist">
+        <li>Startup and session flow</li>
+        <li>AO and planning plausibility</li>
+        <li>RWD snapshot freeze/refresh behavior</li>
+        <li>Weather startup and refresh sanity</li>
+        <li>Route severity impact on movement and wear</li>
+        <li>Support/hostility plausibility</li>
+        <li>SITREP scan speed and clarity</li>
+        <li>Feature combo coverage through MTS</li>
+        <li>UI vibe: cinematic but still usable</li>
+      </ul>
+
+      <div class="callout small">
+        <strong>Feature Combo Note:</strong><br/>
+        Baseline | Route only | Weather only | Dashboard only | Route+Weather | Route+Dashboard | Weather+Dashboard | All active
+      </div>
+    </div>
+
+    <div>
+      <h2>TODONE</h2>
+      <ul>
+        <li>Core first-look sim/API/UI slice</li>
+        <li>AO planning and SITREP scaffolding</li>
+        <li>Upper Cumberland RWD seed data</li>
+        <li>Election-weighted support posture</li>
+        <li>Transport realism profiles</li>
+        <li>RSI / SAF first pass</li>
+        <li>Real-weather first pass</li>
+        <li>MTS reusable feature-matrix harness</li>
+      </ul>
+
+      <h2>TODO</h2>
+      <ul>
+        <li>Wire MTS feature selections end to end</li>
+        <li>Deepen weather into dust/traction/surface shifts</li>
+        <li>Strengthen non-weather RWD imports</li>
+        <li>Merge political terrain with chokepoint logic</li>
+        <li>Tune vehicle-specific severity coefficients</li>
+        <li>Add later simulated weather system</li>
+      </ul>
+
+      <h2>TODONTS / TOCANTS</h2>
+      <ul>
+        <li>Do not treat static RWD as continuously live during a run.</li>
+        <li>Do not trust pretty theme work more than operator workflow.</li>
+        <li>Cannot yet claim full live ingestion across all RWD paths.</li>
+        <li>Cannot yet claim final-tuned political/road interaction realism.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="notes">
+    <h2>Feedback Prompts</h2>
+    <div>What broke?</div><div class="line"></div>
+    <div>What felt fake?</div><div class="line"></div>
+    <div>What confused you?</div><div class="line"></div>
+    <div>Which feature combo was active?</div><div class="line"></div>
+    <div>What data looked wrong?</div><div class="line"></div>
+    <div>What should be easier next pass?</div><div class="line"></div>
+  </div>
+</body>
+</html>
+

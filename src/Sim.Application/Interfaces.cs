@@ -13,6 +13,11 @@ public interface IEnrichmentProvider
     EnrichmentSnapshot BuildSnapshot(ScenarioDefinition scenario, RouteDefinition route);
 }
 
+public interface IRealWorldWeatherService
+{
+    Task<RealWorldWeatherSnapshotDto> GetCurrentWeatherAsync(double lat, double lon, CancellationToken cancellationToken = default);
+}
+
 public interface IAoiPlanningService
 {
     AoiPlanningResponse PlanArea(AoiPlanningRequest request);
@@ -28,5 +33,9 @@ public interface ISimulationSessionManager
     TimelineResponse GetTimeline(Guid sessionId);
     EnrichmentResponse GetEnrichment(Guid sessionId);
     SitrepResponse GetSitrep(Guid sessionId);
+    WorldDataStatusResponse GetWorldDataStatus(Guid sessionId);
+    WorldDataStatusResponse UpdateDevFeatures(Guid sessionId, SessionDevFeatureFlagsDto devFeatures);
+    Task<WorldDataStatusResponse> RefreshWorldDataAsync(Guid sessionId, CancellationToken cancellationToken = default);
+    Task<WorldDataStatusResponse> RefreshWeatherAsync(Guid sessionId, bool force = true, CancellationToken cancellationToken = default);
     void AdvanceRunningSessions();
 }

@@ -45,6 +45,9 @@
                 <Button Classes="commandButton" Content="PAUSE" Command="{Binding PauseCommand}" />
                 <Button Classes="commandButton" Content="RESET" Command="{Binding ResetCommand}" />
                 <Button Classes="commandButton" Content="REFRESH" Command="{Binding RefreshCommand}" />
+                <Button Classes="commandButton" Content="UPDATE RWD" Command="{Binding UpdateWorldDataCommand}" />
+                <Button Classes="commandButton" Content="REFRESH WX" Command="{Binding RefreshWeatherCommand}" />
+                <Button Classes="commandButton" Content="APPLY DEV" Command="{Binding ApplyDevFeaturesCommand}" />
             </StackPanel>
         </Border>
 
@@ -339,6 +342,22 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </ScrollViewer>
+
+                <TextBlock Classes="panelTitle" Text="[RWD / WX CONTROL] TEST HARNESS" Margin="0,10,0,8" />
+                <Border Classes="card" Padding="8" Margin="0,0,0,8">
+                    <StackPanel Spacing="6">
+                        <TextBlock Classes="muted" Text="{Binding WorldDataOverview}" TextWrapping="Wrap" />
+                        <TextBlock Classes="muted" Text="{Binding WeatherOverview}" TextWrapping="Wrap" />
+                        <WrapPanel>
+                            <CheckBox Content="LIVE WEATHER" IsChecked="{Binding UseRealWorldWeather}" Margin="0,0,14,6" />
+                            <CheckBox Content="AUTO WX" IsChecked="{Binding AutoWeatherRefreshEnabled}" Margin="0,0,14,6" />
+                            <CheckBox Content="MANUAL RWD" IsChecked="{Binding AllowManualWorldDataRefresh}" Margin="0,0,14,6" />
+                            <CheckBox Content="MANUAL WX" IsChecked="{Binding AllowManualWeatherRefresh}" Margin="0,0,14,6" />
+                            <CheckBox Content="FREEZE STATIC RWD" IsChecked="{Binding FreezeStaticRwdDuringRun}" Margin="0,0,14,6" />
+                            <CheckBox Content="WX FALLBACK" IsChecked="{Binding UseMockWeatherFallback}" Margin="0,0,14,6" />
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
 
                 <TextBlock Classes="panelTitle" Text="[TIMELINE] WATCHFLOOR FEED" Margin="0,10,0,8" />
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Height="340">

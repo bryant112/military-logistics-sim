@@ -390,6 +390,57 @@ public sealed class SimulationTests
         Assert.Contains(timeline.Events, e => e.EventType == "Incident");
     }
 
+    [Fact]
+    public async Task LiveWeatherRefresh_UpdatesSessionWeatherState()
+    {
+        var scenario = BuildScenario();
+        var weatherService = new SequenceWeatherService(
+            BuildWeatherSnapshot(0.18, "Clear", 72, 8, 10),
+            BuildWeatherSnapshot(0.68, "Strong thunderstorms", 84, 28, 80));
+
+        var manager = new SimulationSessionManager(new MockEnrichmentProvider(), weatherService);
+        var session = manager.CreateSession(scenario, 14);
+
+        var first = await manager.RefreshWeatherAsync(session.SessionId, true);
+        var second = await manager.RefreshWeatherAsync(session.SessionId, true);
+
+        Assert.Equal("NOAA stub", first.Weather.Source);
+        Assert.True(second.CurrentWeatherSeverity > first.CurrentWeatherSeverity);
+        Assert.Equal("Rough", second.CurrentWeatherBand);
+
+        var state = manager.GetWorldState(session.SessionId);
+        Assert.Equal(second.CurrentWeatherSeverity, state.WorldData.CurrentWeatherSeverity);
+        Assert.Equal("Strong thunderstorms", state.WorldData.Weather.Summary);
+    }
+
+    [Fact]
+    public async Task DevFeatureToggle_CanDisableAutomaticLiveWeather()
+    {
+        var scenario = BuildScenario();
+        var weatherService = new SequenceWeatherService(BuildWeatherSnapshot(0.55, "Rain showers", 64, 15, 60));
+        var manager = new SimulationSessionManager(new MockEnrichmentProvider(), weatherService);
+        var session = manager.CreateSession(scenario, 27);
+
+        await manager.RefreshWeatherAsync(session.SessionId, true);
+        var before = manager.GetWorldDataStatus(session.SessionId);
+
+        manager.UpdateDevFeatures(session.SessionId, new SessionDevFeatureFlagsDto
+        {
+            UseRealWorldWeather = false,
+            AutoWeatherRefreshEnabled = false,
+            AllowManualWorldDataRefresh = true,
+            AllowManualWeatherRefresh = true,
+            FreezeStaticRwdDuringRun = true,
+            UseMockWeatherFallback = true
+        });
+
+        var after = await manager.RefreshWeatherAsync(session.SessionId, false);
+
+        Assert.Equal(before.LastWeatherRefreshAt, after.LastWeatherRefreshAt);
+        Assert.False(after.DevFeatures.UseRealWorldWeather);
+        Assert.False(after.AutoWeatherRefreshEnabled);
+    }
+
     private static ScenarioDefinition BuildScenario()
     {
         return new ScenarioDefinition
@@ -540,6 +591,73 @@ public sealed class SimulationTests
                     }
                 ]
             };
+        }
+    }
+
+    private static RealWorldWeatherSnapshotDto BuildWeatherSnapshot(double severity, string summary, int temperatureF, int windMph, int precipChancePercent)
+    {
+        return new RealWorldWeatherSnapshotDto
+        {
+            QueryLat = 36.16,
+            QueryLon = -85.5,
+            Summary = summary,
+            DetailedForecast = summary,
+            TemperatureF = temperatureF,
+            TemperatureTrend = "Steady",
+            WindSpeedMph = windMph,
+            WindDirection = "SW",
+            PrecipitationChancePercent = precipChancePercent,
+            Severity = severity,
+            SeverityBand = severity switch
+            {
+                <= 0.25 => "Nominal",
+                <= 0.5 => "Watch",
+                <= 0.75 => "Rough",
+                _ => "Severe"
+            },
+            ObservedAt = DateTimeOffset.UtcNow,
+            Source = "NOAA stub",
+            GridId = "OHX",
+            ForecastOfficeUrl = "https://api.weather.gov/offices/OHX"
+        };
+    }
+
+    private sealed class SequenceWeatherService : IRealWorldWeatherService
+    {
+        private readonly Queue<RealWorldWeatherSnapshotDto> _snapshots;
+        private RealWorldWeatherSnapshotDto _last;
+
+        public SequenceWeatherService(params RealWorldWeatherSnapshotDto[] snapshots)
+        {
+            _snapshots = new Queue<RealWorldWeatherSnapshotDto>(snapshots);
+            _last = snapshots.LastOrDefault() ?? BuildWeatherSnapshot(0.2, "Fallback", 70, 5, 10);
+        }
+
+        public Task<RealWorldWeatherSnapshotDto> GetCurrentWeatherAsync(double lat, double lon, CancellationToken cancellationToken = default)
+        {
+            if (_snapshots.Count > 0)
+            {
+                _last = _snapshots.Dequeue();
+            }
+
+            return Task.FromResult(new RealWorldWeatherSnapshotDto
+            {
+                QueryLat = lat,
+                QueryLon = lon,
+                Summary = _last.Summary,
+                DetailedForecast = _last.DetailedForecast,
+                TemperatureF = _last.TemperatureF,
+                TemperatureTrend = _last.TemperatureTrend,
+                WindSpeedMph = _last.WindSpeedMph,
+                WindDirection = _last.WindDirection,
+                PrecipitationChancePercent = _last.PrecipitationChancePercent,
+                Severity = _last.Severity,
+                SeverityBand = _last.SeverityBand,
+                ObservedAt = DateTimeOffset.UtcNow,
+                Source = _last.Source,
+                GridId = _last.GridId,
+                ForecastOfficeUrl = _last.ForecastOfficeUrl
+            });
         }
     }
 }
