@@ -31,8 +31,16 @@
         "configuredLoadQuality": { "type": "number", "minimum": 0, "maximum": 1 },
         "maintenanceDiscipline": { "type": "number", "minimum": 0, "maximum": 1 },
         "securityDiscipline": { "type": "number", "minimum": 0, "maximum": 1 },
+        "umoPlanningQuality": { "type": "number", "minimum": 0, "maximum": 1 },
+        "loadingTeamChiefQuality": { "type": "number", "minimum": 0, "maximum": 1 },
+        "weatherSeverity": { "type": "number", "minimum": 0, "maximum": 1 },
+        "dustExposure": { "type": "number", "minimum": 0, "maximum": 1 },
         "crewEnduranceHours": { "type": "number", "exclusiveMinimum": 0 },
-        "useAssistantDrivers": { "type": "boolean" }
+        "useAssistantDrivers": { "type": "boolean" },
+        "useTiedowns": { "type": "boolean" },
+        "useBlockingAndBracing": { "type": "boolean" },
+        "usePalletRestraint": { "type": "boolean" },
+        "useCargoIsolation": { "type": "boolean" }
       },
       "additionalProperties": false
     },

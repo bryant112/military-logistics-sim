@@ -22,12 +22,18 @@ public sealed class MovementRuntime
     public double ConfiguredLoadQuality { get; set; }
     public double SupportScore { get; set; }
     public double ThreatExposure { get; set; }
+    public double Morale { get; set; } = 1.0;
+    public double CargoDamageRisk { get; set; }
+    public double ConcealmentScore { get; set; }
+    public double RouteSeverityIndex { get; set; }
+    public double SurfaceAttritionFactor { get; set; }
 }
 
 public sealed class AssetRuntime
 {
     public string AssetId { get; init; } = string.Empty;
     public AssetType AssetType { get; init; }
+    public int PayloadCapacity { get; init; }
     public double FuelState { get; set; }
     public double Readiness { get; set; }
     public double MaintenanceBacklog { get; set; }
