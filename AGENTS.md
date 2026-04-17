@@ -16,6 +16,10 @@
 
 - For feature-branch testing handoffs, prefer using the `feature-branch-test-brief` skill to generate a concise Markdown + HTML + PDF testing sheet in `docs\` with `Status Overview`, `Testing Targets`, `TODONE`, `TODO`, `TODONTS`, `TOCANTS`, and `Feedback Prompts`.
 
+## User shorthand
+
+- `DAYSF` means `do as you see fit`.
+
 ## Project Context
 
 - This is a first-look military logistics simulator prototype.
