@@ -9,11 +9,23 @@ public sealed class ScenarioDefinition
     public int DurationMinutes { get; set; } = 360;
     public string TerrainReference { get; set; } = string.Empty;
     public string RulesetId { get; set; } = string.Empty;
+    public ScenarioRealismDefinition Realism { get; set; } = new();
     public List<NodeDefinition> Nodes { get; set; } = new();
     public List<RouteDefinition> Routes { get; set; } = new();
     public List<AssetDefinition> Assets { get; set; } = new();
     public List<ShipmentDefinition> Shipments { get; set; } = new();
     public List<IncidentSeedDefinition> IncidentSeeds { get; set; } = new();
+}
+
+public sealed class ScenarioRealismDefinition
+{
+    public double ReportingQuality { get; set; } = 0.75;
+    public double SustainmentRhythmAdherence { get; set; } = 0.8;
+    public double ConfiguredLoadQuality { get; set; } = 0.78;
+    public double MaintenanceDiscipline { get; set; } = 0.8;
+    public double SecurityDiscipline { get; set; } = 0.75;
+    public double CrewEnduranceHours { get; set; } = 10.0;
+    public bool UseAssistantDrivers { get; set; } = true;
 }
 
 public sealed class NodeDefinition

@@ -14,6 +14,14 @@ public sealed class MovementRuntime
     public double EtaDriftMinutes { get; set; }
     public string Status { get; set; } = "Planned";
     public bool Delivered { get; set; }
+    public int CrewSize { get; set; }
+    public bool AssistantDriverAssigned { get; set; }
+    public double CrewFatigueHours { get; set; }
+    public double CrewFatigueIndex { get; set; }
+    public double ReportingConfidence { get; set; }
+    public double ConfiguredLoadQuality { get; set; }
+    public double SupportScore { get; set; }
+    public double ThreatExposure { get; set; }
 }
 
 public sealed class AssetRuntime
@@ -21,7 +29,8 @@ public sealed class AssetRuntime
     public string AssetId { get; init; } = string.Empty;
     public AssetType AssetType { get; init; }
     public double FuelState { get; set; }
-    public double Readiness { get; init; }
+    public double Readiness { get; set; }
+    public double MaintenanceBacklog { get; set; }
 }
 
 public sealed class ShipmentRuntime
@@ -65,4 +74,5 @@ public sealed class SimulationRuntimeState
     public List<IncidentRuntime> Incidents { get; init; } = new();
     public List<TimelineEvent> Timeline { get; init; } = new();
     public HashSet<string> IncidentUniqueness { get; init; } = new();
+    public HashSet<string> EventUniqueness { get; init; } = new();
 }

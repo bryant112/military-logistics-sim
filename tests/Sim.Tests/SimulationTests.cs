@@ -33,6 +33,7 @@ public sealed class SimulationTests
         Assert.Equal(leftState.Tick, rightState.Tick);
         Assert.Equal(leftState.Movements.Select(m => (m.MovementId, m.Progress, m.Status)), rightState.Movements.Select(m => (m.MovementId, m.Progress, m.Status)));
         Assert.Equal(leftState.Incidents.Count, rightState.Incidents.Count);
+        Assert.Equal(leftState.Movements.Select(m => (m.CrewFatigueIndex, m.ReportingConfidence)), rightState.Movements.Select(m => (m.CrewFatigueIndex, m.ReportingConfidence)));
     }
 
     [Fact]
@@ -81,6 +82,125 @@ public sealed class SimulationTests
     }
 
     [Fact]
+    public void AssistantDriverAndBetterDiscipline_ReduceFatigueDrag()
+    {
+        var supportedScenario = BuildScenario();
+        supportedScenario.Realism = new ScenarioRealismDefinition
+        {
+            ReportingQuality = 0.85,
+            SustainmentRhythmAdherence = 0.85,
+            ConfiguredLoadQuality = 0.85,
+            MaintenanceDiscipline = 0.85,
+            SecurityDiscipline = 0.8,
+            CrewEnduranceHours = 1.0,
+            UseAssistantDrivers = true
+        };
+
+        var strainedScenario = BuildScenario();
+        strainedScenario.Realism = new ScenarioRealismDefinition
+        {
+            ReportingQuality = 0.45,
+            SustainmentRhythmAdherence = 0.45,
+            ConfiguredLoadQuality = 0.4,
+            MaintenanceDiscipline = 0.4,
+            SecurityDiscipline = 0.45,
+            CrewEnduranceHours = 1.0,
+            UseAssistantDrivers = false
+        };
+
+        var supportedManager = new SimulationSessionManager(new MockEnrichmentProvider());
+        var strainedManager = new SimulationSessionManager(new MockEnrichmentProvider());
+
+        var supported = supportedManager.CreateSession(supportedScenario, 77);
+        var strained = strainedManager.CreateSession(strainedScenario, 77);
+
+        supportedManager.Start(supported.SessionId);
+        strainedManager.Start(strained.SessionId);
+
+        for (var i = 0; i < 900; i++)
+        {
+            supportedManager.AdvanceRunningSessions();
+            strainedManager.AdvanceRunningSessions();
+        }
+
+        var supportedMovement = supportedManager.GetWorldState(supported.SessionId).Movements.First(m => m.RouteId == "ground-1");
+        var strainedMovement = strainedManager.GetWorldState(strained.SessionId).Movements.First(m => m.RouteId == "ground-1");
+
+        Assert.True(supportedMovement.CrewFatigueIndex < strainedMovement.CrewFatigueIndex);
+        Assert.True(supportedMovement.Progress > strainedMovement.Progress);
+    }
+
+    [Fact]
+    public void PressureSignals_SurfaceInWorldState()
+    {
+        var scenario = BuildScenario();
+        scenario.Realism.CrewEnduranceHours = 0.5;
+        scenario.Realism.ReportingQuality = 0.4;
+        scenario.Realism.MaintenanceDiscipline = 0.35;
+
+        var manager = new SimulationSessionManager(new MockEnrichmentProvider());
+        var session = manager.CreateSession(scenario, 55);
+
+        manager.Start(session.SessionId);
+        for (var i = 0; i < 900; i++)
+        {
+            manager.AdvanceRunningSessions();
+        }
+
+        var state = manager.GetWorldState(session.SessionId);
+        var timeline = manager.GetTimeline(session.SessionId);
+
+        Assert.True(state.Overview.AverageCrewFatigueIndex > 0);
+        Assert.Contains(state.Assets, a => a.MaintenanceBacklog > 0);
+        Assert.Contains(timeline.Events, e => e.EventType is "FatigueWarning" or "ReportingGap" or "MaintenanceDelay");
+    }
+
+    [Fact]
+    public void AoiPlanner_BuildsUsaOnlyObjectivesAndSupportZones()
+    {
+        var planner = new MockAoiPlanningService();
+        var response = planner.PlanArea(new AoiPlanningRequest
+        {
+            CenterLat = 36.1627,
+            CenterLon = -86.7816,
+            RadiusMiles = 30,
+            Seed = 42,
+            Criteria = new SituationCriteriaDto
+            {
+                InfrastructurePriority = 0.7,
+                CivilFriction = 0.4,
+                GovernmentFriendliness = 0.55,
+                ThreatLevel = 0.5,
+                WeatherStress = 0.2
+            }
+        });
+
+        Assert.True(response.IsWithinUsa);
+        Assert.NotEmpty(response.Objectives);
+        Assert.NotEmpty(response.SupportZones);
+        Assert.All(response.SupportZones, z => Assert.Equal(10.0, z.AreaSquareMiles));
+    }
+
+    [Fact]
+    public void Sitrep_ReturnsPinsForTrackedMovements()
+    {
+        var scenario = BuildScenario();
+        var manager = new SimulationSessionManager(new MockEnrichmentProvider());
+        var session = manager.CreateSession(scenario, 91);
+
+        manager.Start(session.SessionId);
+        for (var i = 0; i < 120; i++)
+        {
+            manager.AdvanceRunningSessions();
+        }
+
+        var sitrep = manager.GetSitrep(session.SessionId);
+
+        Assert.NotEmpty(sitrep.MovementPins);
+        Assert.Contains(sitrep.MovementPins, pin => pin.PinTone is "Green" or "Amber" or "Red");
+    }
+
+    [Fact]
     public void HighProbabilityIncident_EmitsTimelineEvent()
     {
         var scenario = BuildScenario();
@@ -120,6 +240,16 @@ public sealed class SimulationTests
             DurationMinutes = 180,
             TerrainReference = "starter-map-01",
             RulesetId = "baseline-logistics-v1",
+            Realism = new ScenarioRealismDefinition
+            {
+                ReportingQuality = 0.75,
+                SustainmentRhythmAdherence = 0.8,
+                ConfiguredLoadQuality = 0.78,
+                MaintenanceDiscipline = 0.8,
+                SecurityDiscipline = 0.75,
+                CrewEnduranceHours = 10.0,
+                UseAssistantDrivers = true
+            },
             Nodes =
             [
                 new NodeDefinition { NodeId = "depot-alpha", NodeType = NodeType.Depot, Name = "Depot Alpha", Lat = 36.1, Lon = -85.6, Capacity = 10000 },

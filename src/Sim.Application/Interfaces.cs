@@ -13,6 +13,11 @@ public interface IEnrichmentProvider
     EnrichmentSnapshot BuildSnapshot(ScenarioDefinition scenario, RouteDefinition route);
 }
 
+public interface IAoiPlanningService
+{
+    AoiPlanningResponse PlanArea(AoiPlanningRequest request);
+}
+
 public interface ISimulationSessionManager
 {
     CreateSessionResponse CreateSession(ScenarioDefinition scenario, int seed);
@@ -22,5 +27,6 @@ public interface ISimulationSessionManager
     WorldStateResponse GetWorldState(Guid sessionId);
     TimelineResponse GetTimeline(Guid sessionId);
     EnrichmentResponse GetEnrichment(Guid sessionId);
+    SitrepResponse GetSitrep(Guid sessionId);
     void AdvanceRunningSessions();
 }

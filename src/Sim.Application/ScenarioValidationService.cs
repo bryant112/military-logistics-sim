@@ -71,6 +71,17 @@ public sealed class ScenarioValidationService
             errors.Add("DurationMinutes must be > 0.");
         }
 
+        if (scenario.Realism.CrewEnduranceHours <= 0)
+        {
+            errors.Add("Realism.CrewEnduranceHours must be > 0.");
+        }
+
+        ValidateUnitInterval(errors, scenario.Realism.ReportingQuality, "Realism.ReportingQuality");
+        ValidateUnitInterval(errors, scenario.Realism.SustainmentRhythmAdherence, "Realism.SustainmentRhythmAdherence");
+        ValidateUnitInterval(errors, scenario.Realism.ConfiguredLoadQuality, "Realism.ConfiguredLoadQuality");
+        ValidateUnitInterval(errors, scenario.Realism.MaintenanceDiscipline, "Realism.MaintenanceDiscipline");
+        ValidateUnitInterval(errors, scenario.Realism.SecurityDiscipline, "Realism.SecurityDiscipline");
+
         if (scenario.Nodes.Count == 0)
         {
             errors.Add("At least one node is required.");
@@ -110,5 +121,13 @@ public sealed class ScenarioValidationService
         }
 
         return errors;
+    }
+
+    private static void ValidateUnitInterval(List<string> errors, double value, string fieldName)
+    {
+        if (value < 0 || value > 1)
+        {
+            errors.Add($"{fieldName} must be between 0 and 1.");
+        }
     }
 }

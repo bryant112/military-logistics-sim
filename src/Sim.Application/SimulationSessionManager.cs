@@ -98,6 +98,7 @@ public sealed class SimulationSessionManager : ISimulationSessionManager
                 Tick = runtime.Tick,
                 SimulatedTime = runtime.SimulatedTime,
                 Status = runtime.IsRunning ? "Running" : "Paused",
+                Overview = BuildOverview(runtime),
                 Movements = runtime.Movements.Select(m => new MovementStateDto
                 {
                     MovementId = m.MovementId,
@@ -105,14 +106,22 @@ public sealed class SimulationSessionManager : ISimulationSessionManager
                     Mode = m.Mode.ToString(),
                     Status = m.Status,
                     Progress = Math.Round(m.Progress, 4),
-                    EtaDriftMinutes = m.EtaDriftMinutes
+                    EtaDriftMinutes = m.EtaDriftMinutes,
+                    CrewSize = m.CrewSize,
+                    AssistantDriverAssigned = m.AssistantDriverAssigned,
+                    CrewFatigueHours = Math.Round(m.CrewFatigueHours, 2),
+                    CrewFatigueIndex = Math.Round(m.CrewFatigueIndex, 2),
+                    ReportingConfidence = Math.Round(m.ReportingConfidence, 2),
+                    SupportScore = Math.Round(m.SupportScore, 2),
+                    ThreatExposure = Math.Round(m.ThreatExposure, 2)
                 }).ToList(),
                 Assets = runtime.AssetsById.Values.Select(a => new AssetStateDto
                 {
                     AssetId = a.AssetId,
                     AssetType = a.AssetType.ToString(),
                     FuelState = Math.Round(a.FuelState, 2),
-                    Readiness = a.Readiness
+                    Readiness = Math.Round(a.Readiness, 2),
+                    MaintenanceBacklog = Math.Round(a.MaintenanceBacklog, 2)
                 }).ToList(),
                 Shipments = runtime.ShipmentsById.Values.Select(s => new ShipmentStateDto
                 {
@@ -161,6 +170,37 @@ public sealed class SimulationSessionManager : ISimulationSessionManager
             {
                 SessionId = sessionId,
                 Routes = envelope.Runtime.EnrichmentByRoute.Values.OrderBy(v => v.RouteId).ToList()
+            };
+        }
+    }
+
+    public SitrepResponse GetSitrep(Guid sessionId)
+    {
+        var envelope = GetEnvelope(sessionId);
+        lock (envelope.Sync)
+        {
+            var runtime = envelope.Runtime;
+            var pins = runtime.Movements.Select(m => new MovementPinDto
+            {
+                MovementId = m.MovementId,
+                RouteId = m.RouteId,
+                Status = m.Status,
+                Progress = Math.Round(m.Progress, 2),
+                ThreatExposure = Math.Round(m.ThreatExposure, 2),
+                CrewFatigueIndex = Math.Round(m.CrewFatigueIndex, 2),
+                ReportingConfidence = Math.Round(m.ReportingConfidence, 2),
+                PinTone = DeterminePinTone(m, runtime.AssetsById[m.AssetId]),
+                Summary = $"{m.Status} | ETA drift {m.EtaDriftMinutes:F1}m | fatigue {m.CrewFatigueIndex:P0} | LOGSTAT {m.ReportingConfidence:P0}"
+            }).ToList();
+
+            return new SitrepResponse
+            {
+                SessionId = sessionId,
+                OverallStatus = runtime.IsRunning ? "Tracking" : "StandingBy",
+                DelayedMovements = runtime.Movements.Count(m => m.Status == "Delayed"),
+                ActiveIncidents = runtime.Incidents.Count,
+                CriticalAssets = runtime.AssetsById.Values.Count(a => a.FuelState <= 25 || a.MaintenanceBacklog >= 2.5 || a.Readiness <= 0.7),
+                MovementPins = pins
             };
         }
     }
@@ -237,7 +277,8 @@ public sealed class SimulationSessionManager : ISimulationSessionManager
                 AssetId = asset.AssetId,
                 AssetType = asset.AssetType,
                 FuelState = asset.FuelState,
-                Readiness = asset.Readiness
+                Readiness = asset.Readiness,
+                MaintenanceBacklog = Math.Round((1.0 - asset.Readiness) * 4.0, 2)
             };
         }
 
@@ -280,7 +321,11 @@ public sealed class SimulationSessionManager : ISimulationSessionManager
                 AssetId = selectedAsset.AssetId,
                 ShipmentIds = shipmentIds,
                 Progress = 0,
-                Status = "Planned"
+                Status = "Planned",
+                CrewSize = DetermineCrewSize(route.Mode, selectedAsset.AssetType, scenario.Realism.UseAssistantDrivers, route.EstimatedTravelTimeMinutes),
+                AssistantDriverAssigned = ShouldAssignAssistantDriver(route.Mode, selectedAsset.AssetType, scenario.Realism.UseAssistantDrivers, route.EstimatedTravelTimeMinutes),
+                ReportingConfidence = scenario.Realism.ReportingQuality,
+                ConfiguredLoadQuality = scenario.Realism.ConfiguredLoadQuality
             });
         }
 
@@ -318,6 +363,63 @@ public sealed class SimulationSessionManager : ISimulationSessionManager
             AssetType.CargoAircraft or AssetType.Helicopter => TransportMode.Air,
             _ => TransportMode.Ground
         };
+    }
+
+    private static int DetermineCrewSize(TransportMode mode, AssetType assetType, bool useAssistantDrivers, int estimatedTravelTimeMinutes)
+    {
+        return mode switch
+        {
+            TransportMode.Ground when assetType == AssetType.ArmoredEscort => 3,
+            TransportMode.Ground => useAssistantDrivers || estimatedTravelTimeMinutes >= 240 ? 2 : 1,
+            TransportMode.Rail => 2,
+            TransportMode.Air when assetType == AssetType.Helicopter => 3,
+            TransportMode.Air => 4,
+            _ => 1
+        };
+    }
+
+    private static bool ShouldAssignAssistantDriver(TransportMode mode, AssetType assetType, bool useAssistantDrivers, int estimatedTravelTimeMinutes)
+    {
+        if (mode != TransportMode.Ground)
+        {
+            return false;
+        }
+
+        if (assetType == AssetType.ArmoredEscort)
+        {
+            return true;
+        }
+
+        return useAssistantDrivers || estimatedTravelTimeMinutes >= 240;
+    }
+
+    private static LogisticsOverviewDto BuildOverview(SimulationRuntimeState runtime)
+    {
+        var realism = runtime.Scenario.Realism;
+        return new LogisticsOverviewDto
+        {
+            ReportingQuality = Math.Round(realism.ReportingQuality, 2),
+            SustainmentRhythmAdherence = Math.Round(realism.SustainmentRhythmAdherence, 2),
+            ConfiguredLoadQuality = Math.Round(realism.ConfiguredLoadQuality, 2),
+            SecurityDiscipline = Math.Round(realism.SecurityDiscipline, 2),
+            AverageCrewFatigueIndex = Math.Round(runtime.Movements.Count == 0 ? 0 : runtime.Movements.Average(m => m.CrewFatigueIndex), 2),
+            AverageMaintenanceBacklog = Math.Round(runtime.AssetsById.Count == 0 ? 0 : runtime.AssetsById.Values.Average(a => a.MaintenanceBacklog), 2)
+        };
+    }
+
+    private static string DeterminePinTone(MovementRuntime movement, AssetRuntime asset)
+    {
+        if (movement.Status == "Delayed" || movement.ThreatExposure >= 0.7 || asset.FuelState <= 25)
+        {
+            return "Red";
+        }
+
+        if (movement.CrewFatigueIndex >= 0.45 || movement.ReportingConfidence <= 0.6 || asset.MaintenanceBacklog >= 2.5)
+        {
+            return "Amber";
+        }
+
+        return "Green";
     }
 
     private sealed class SessionEnvelope

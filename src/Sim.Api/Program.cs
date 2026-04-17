@@ -11,6 +11,7 @@ var starterScenarioPath = Path.Combine(rootPath, "schemas", "08_starter_scenario
 builder.Services.AddSingleton(new ScenarioValidationService());
 builder.Services.AddSingleton<IScenarioSource>(new FileScenarioSource(starterScenarioPath));
 builder.Services.AddSingleton<IEnrichmentProvider, MockEnrichmentProvider>();
+builder.Services.AddSingleton<IAoiPlanningService, MockAoiPlanningService>();
 builder.Services.AddSingleton<ISimulationSessionManager, SimulationSessionManager>();
 builder.Services.AddHostedService<SimulationTickerHostedService>();
 
@@ -55,6 +56,12 @@ app.MapPost("/sessions", async (CreateSessionRequest request, IScenarioSource sc
 
     var response = sessionManager.CreateSession(scenario, request.Seed);
     return Results.Ok(response);
+});
+
+app.MapPost("/planning/ao", (AoiPlanningRequest request, IAoiPlanningService planningService) =>
+{
+    var response = planningService.PlanArea(request);
+    return response.IsWithinUsa ? Results.Ok(response) : Results.BadRequest(response);
 });
 
 app.MapPost("/sessions/{sessionId:guid}/start", (Guid sessionId, ISimulationSessionManager sessionManager) =>
@@ -122,6 +129,18 @@ app.MapGet("/sessions/{sessionId:guid}/enrichment", (Guid sessionId, ISimulation
     try
     {
         return Results.Ok(sessionManager.GetEnrichment(sessionId));
+    }
+    catch (KeyNotFoundException ex)
+    {
+        return Results.NotFound(ex.Message);
+    }
+});
+
+app.MapGet("/sessions/{sessionId:guid}/sitrep", (Guid sessionId, ISimulationSessionManager sessionManager) =>
+{
+    try
+    {
+        return Results.Ok(sessionManager.GetSitrep(sessionId));
     }
     catch (KeyNotFoundException ex)
     {

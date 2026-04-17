@@ -38,10 +38,21 @@ public sealed class WorldStateResponse
     public int Tick { get; set; }
     public DateTimeOffset SimulatedTime { get; set; }
     public string Status { get; set; } = string.Empty;
+    public LogisticsOverviewDto Overview { get; set; } = new();
     public List<MovementStateDto> Movements { get; set; } = new();
     public List<AssetStateDto> Assets { get; set; } = new();
     public List<ShipmentStateDto> Shipments { get; set; } = new();
     public List<IncidentDto> Incidents { get; set; } = new();
+}
+
+public sealed class LogisticsOverviewDto
+{
+    public double ReportingQuality { get; set; }
+    public double SustainmentRhythmAdherence { get; set; }
+    public double ConfiguredLoadQuality { get; set; }
+    public double SecurityDiscipline { get; set; }
+    public double AverageCrewFatigueIndex { get; set; }
+    public double AverageMaintenanceBacklog { get; set; }
 }
 
 public sealed class MovementStateDto
@@ -52,6 +63,13 @@ public sealed class MovementStateDto
     public string Status { get; set; } = string.Empty;
     public double Progress { get; set; }
     public double EtaDriftMinutes { get; set; }
+    public int CrewSize { get; set; }
+    public bool AssistantDriverAssigned { get; set; }
+    public double CrewFatigueHours { get; set; }
+    public double CrewFatigueIndex { get; set; }
+    public double ReportingConfidence { get; set; }
+    public double SupportScore { get; set; }
+    public double ThreatExposure { get; set; }
 }
 
 public sealed class AssetStateDto
@@ -60,6 +78,7 @@ public sealed class AssetStateDto
     public string AssetType { get; set; } = string.Empty;
     public double FuelState { get; set; }
     public double Readiness { get; set; }
+    public double MaintenanceBacklog { get; set; }
 }
 
 public sealed class ShipmentStateDto
