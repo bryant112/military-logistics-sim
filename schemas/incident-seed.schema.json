@@ -1,0 +1,18 @@
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://military-logistics-sim/schemas/incident-seed.schema.json",
+  "title": "IncidentSeed",
+  "type": "object",
+  "required": ["incidentType", "severity", "routeId", "probability"],
+  "properties": {
+    "incidentType": {
+      "type": "string",
+      "enum": ["Ambush", "RailObstruction", "AirstripClosure", "GateBreach", "WarehouseFire", "DroneSighting", "RouteDenial", "Other"]
+    },
+    "severity": { "type": "string", "enum": ["Low", "Medium", "High"] },
+    "routeId": { "type": "string", "minLength": 1 },
+    "probability": { "type": "number", "minimum": 0, "maximum": 1 },
+    "cameraRefs": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": false
+}

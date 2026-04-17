@@ -1,0 +1,6 @@
+@Sim.Api_HostAddress = http://localhost:5183
+
+GET {{Sim.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

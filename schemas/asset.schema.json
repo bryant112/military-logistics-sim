@@ -1,0 +1,18 @@
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://military-logistics-sim/schemas/asset.schema.json",
+  "title": "Asset",
+  "type": "object",
+  "required": ["assetId", "assetType", "payloadCapacity", "fuelState", "readiness"],
+  "properties": {
+    "assetId": { "type": "string", "minLength": 1 },
+    "assetType": {
+      "type": "string",
+      "enum": ["Truck", "ArmoredEscort", "TrainLocomotive", "RailCar", "CargoAircraft", "Helicopter", "Drone", "SecurityVehicle"]
+    },
+    "payloadCapacity": { "type": "integer", "minimum": 0 },
+    "fuelState": { "type": "number", "minimum": 0, "maximum": 100 },
+    "readiness": { "type": "number", "minimum": 0, "maximum": 1 }
+  },
+  "additionalProperties": false
+}

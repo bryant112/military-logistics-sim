@@ -1,0 +1,33 @@
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://military-logistics-sim/schemas/scenario.schema.json",
+  "title": "Scenario",
+  "type": "object",
+  "required": [
+    "scenarioId",
+    "name",
+    "startTime",
+    "tickRateSeconds",
+    "durationMinutes",
+    "nodes",
+    "routes",
+    "assets",
+    "shipments",
+    "incidentSeeds"
+  ],
+  "properties": {
+    "scenarioId": { "type": "string", "minLength": 1 },
+    "name": { "type": "string", "minLength": 1 },
+    "startTime": { "type": "string", "format": "date-time" },
+    "tickRateSeconds": { "type": "integer", "minimum": 1 },
+    "durationMinutes": { "type": "integer", "minimum": 1 },
+    "terrainReference": { "type": "string" },
+    "rulesetId": { "type": "string" },
+    "nodes": { "type": "array", "items": { "$ref": "./node.schema.json" } },
+    "routes": { "type": "array", "items": { "$ref": "./route.schema.json" } },
+    "assets": { "type": "array", "items": { "$ref": "./asset.schema.json" } },
+    "shipments": { "type": "array", "items": { "$ref": "./shipment.schema.json" } },
+    "incidentSeeds": { "type": "array", "items": { "$ref": "./incident-seed.schema.json" } }
+  },
+  "additionalProperties": false
+}

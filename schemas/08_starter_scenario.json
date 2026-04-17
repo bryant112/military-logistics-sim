@@ -1,0 +1,138 @@
+{
+  "scenarioId": "starter-upper-corridor",
+  "name": "Starter Upper Corridor",
+  "startTime": "2026-04-10T08:00:00Z",
+  "tickRateSeconds": 5,
+  "durationMinutes": 360,
+  "terrainReference": "starter-map-01",
+  "rulesetId": "baseline-logistics-v1",
+  "nodes": [
+    {
+      "nodeId": "depot-alpha",
+      "nodeType": "Depot",
+      "name": "Depot Alpha",
+      "lat": 36.10,
+      "lon": -85.60,
+      "capacity": 10000,
+      "securityPosture": "High"
+    },
+    {
+      "nodeId": "warehouse-bravo",
+      "nodeType": "Warehouse",
+      "name": "Warehouse Bravo",
+      "lat": 36.22,
+      "lon": -85.45,
+      "capacity": 6000,
+      "securityPosture": "Medium"
+    },
+    {
+      "nodeId": "fob-charlie",
+      "nodeType": "FOB",
+      "name": "FOB Charlie",
+      "lat": 36.31,
+      "lon": -85.25,
+      "capacity": 2500,
+      "securityPosture": "Medium"
+    },
+    {
+      "nodeId": "base-delta",
+      "nodeType": "Base",
+      "name": "Base Delta",
+      "lat": 36.42,
+      "lon": -85.05,
+      "capacity": 12000,
+      "securityPosture": "High"
+    }
+  ],
+  "routes": [
+    {
+      "routeId": "ground-1",
+      "mode": "Ground",
+      "startNodeId": "depot-alpha",
+      "endNodeId": "fob-charlie",
+      "riskProfile": "Medium",
+      "estimatedTravelTimeMinutes": 90
+    },
+    {
+      "routeId": "rail-1",
+      "mode": "Rail",
+      "startNodeId": "warehouse-bravo",
+      "endNodeId": "base-delta",
+      "riskProfile": "Low",
+      "estimatedTravelTimeMinutes": 120
+    },
+    {
+      "routeId": "air-1",
+      "mode": "Air",
+      "startNodeId": "base-delta",
+      "endNodeId": "fob-charlie",
+      "riskProfile": "Medium",
+      "estimatedTravelTimeMinutes": 30
+    }
+  ],
+  "assets": [
+    {
+      "assetId": "truck-01",
+      "assetType": "Truck",
+      "payloadCapacity": 2000,
+      "fuelState": 100,
+      "readiness": 0.95
+    },
+    {
+      "assetId": "escort-01",
+      "assetType": "ArmoredEscort",
+      "payloadCapacity": 0,
+      "fuelState": 100,
+      "readiness": 0.98
+    },
+    {
+      "assetId": "train-01",
+      "assetType": "TrainLocomotive",
+      "payloadCapacity": 8000,
+      "fuelState": 100,
+      "readiness": 0.97
+    },
+    {
+      "assetId": "air-01",
+      "assetType": "CargoAircraft",
+      "payloadCapacity": 3000,
+      "fuelState": 100,
+      "readiness": 0.93
+    },
+    {
+      "assetId": "drone-01",
+      "assetType": "Drone",
+      "payloadCapacity": 0,
+      "fuelState": 100,
+      "readiness": 0.99
+    }
+  ],
+  "shipments": [
+    {
+      "shipmentId": "ship-001",
+      "commodityType": "Rations",
+      "quantity": 1000,
+      "weight": 900,
+      "volume": 12,
+      "priority": "High",
+      "originNodeId": "depot-alpha",
+      "destinationNodeId": "fob-charlie"
+    }
+  ],
+  "incidentSeeds": [
+    {
+      "incidentType": "Ambush",
+      "severity": "Medium",
+      "routeId": "ground-1",
+      "probability": 0.20,
+      "cameraRefs": ["drone-01", "helmet-alpha"]
+    },
+    {
+      "incidentType": "RailObstruction",
+      "severity": "Low",
+      "routeId": "rail-1",
+      "probability": 0.10,
+      "cameraRefs": []
+    }
+  ]
+}

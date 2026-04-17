@@ -1,0 +1,107 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Operator.Client.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        d:DesignWidth="1250"
+        d:DesignHeight="760"
+        x:Class="Operator.Client.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="Military Logistics Operator Client"
+        Icon="/Assets/avalonia-logo.ico">
+
+    <Grid Margin="12" RowDefinitions="Auto,Auto,*,*" ColumnDefinitions="*,*">
+        <Border Grid.Row="0" Grid.ColumnSpan="2" Padding="10" CornerRadius="8" Background="#12303C">
+            <StackPanel Spacing="6">
+                <TextBlock FontSize="20" FontWeight="SemiBold" Text="Military Logistics Simulator - First Look" />
+                <TextBlock Text="{Binding SessionDisplay, StringFormat='Session: {0}'}" />
+                <TextBlock Text="{Binding SimulationStatus}" />
+                <TextBlock Text="{Binding StatusMessage}" />
+            </StackPanel>
+        </Border>
+
+        <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,10,0,10" Spacing="8">
+            <Button Content="Create Session" Command="{Binding CreateSessionCommand}" />
+            <Button Content="Start" Command="{Binding StartCommand}" />
+            <Button Content="Pause" Command="{Binding PauseCommand}" />
+            <Button Content="Reset" Command="{Binding ResetCommand}" />
+            <Button Content="Refresh" Command="{Binding RefreshCommand}" />
+        </StackPanel>
+
+        <Border Grid.Row="2" Grid.Column="0" Margin="0,0,6,0" Padding="10" CornerRadius="8" Background="#1C2730">
+            <StackPanel>
+                <TextBlock FontSize="16" FontWeight="SemiBold" Text="Active Movements" Margin="0,0,0,8" />
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Height="250">
+                    <ItemsControl ItemsSource="{Binding Movements}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="180,90,100,80,*" Margin="0,0,0,4">
+                                    <TextBlock Grid.Column="0" Text="{Binding MovementId}" />
+                                    <TextBlock Grid.Column="1" Text="{Binding Mode}" />
+                                    <TextBlock Grid.Column="2" Text="{Binding Status}" />
+                                    <TextBlock Grid.Column="3" Text="{Binding Progress, StringFormat={}{0:P1}}" />
+                                    <TextBlock Grid.Column="4" Text="{Binding EtaDriftMinutes, StringFormat='ETA drift: {0}m'}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <TextBlock FontSize="16" FontWeight="SemiBold" Text="Incidents" Margin="0,12,0,8" />
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Height="180">
+                    <ItemsControl ItemsSource="{Binding Incidents}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="130,120,80,*" Margin="0,0,0,4">
+                                    <TextBlock Grid.Column="0" Text="{Binding IncidentId}" />
+                                    <TextBlock Grid.Column="1" Text="{Binding IncidentType}" />
+                                    <TextBlock Grid.Column="2" Text="{Binding Severity}" />
+                                    <TextBlock Grid.Column="3" Text="{Binding RouteId}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="2" Grid.Column="1" Margin="6,0,0,0" Padding="10" CornerRadius="8" Background="#18232A">
+            <StackPanel>
+                <TextBlock FontSize="16" FontWeight="SemiBold" Text="Enrichment Snapshot" Margin="0,0,0,8" />
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Height="210">
+                    <ItemsControl ItemsSource="{Binding EnrichmentSnapshots}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Margin="0,0,0,8" Padding="8" CornerRadius="6" Background="#24303B">
+                                    <StackPanel>
+                                        <TextBlock FontWeight="SemiBold" Text="{Binding RouteId}" />
+                                        <TextBlock Text="{Binding GroundCorridorMetrics.AverageSpeedLimitKph, StringFormat='Speed limit avg: {0} kph'}" />
+                                        <TextBlock Text="{Binding GroundCorridorMetrics.CongestionIndex, StringFormat='Congestion: {0:F2}'}" />
+                                        <TextBlock Text="{Binding SettlementProfile.DensityBand, StringFormat='Density band: {0}'}" />
+                                        <TextBlock Text="{Binding GeneratedStructureSummary.EstimatedStructureCount, StringFormat='Estimated structures: {0}'}" />
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <TextBlock FontSize="16" FontWeight="SemiBold" Text="Timeline" Margin="0,10,0,8" />
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Height="220">
+                    <ItemsControl ItemsSource="{Binding TimelineEvents}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="60,140,*" Margin="0,0,0,4">
+                                    <TextBlock Grid.Column="0" Text="{Binding Tick}" />
+                                    <TextBlock Grid.Column="1" Text="{Binding EventType}" />
+                                    <TextBlock Grid.Column="2" Text="{Binding Message}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

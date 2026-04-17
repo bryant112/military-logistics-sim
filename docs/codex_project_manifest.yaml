@@ -1,0 +1,42 @@
+project_name: military-logistics-sim
+goal: >
+  Windows-based military logistics simulator with backend-driven simulation and
+  Unreal-based 3D visualization for convoys, rail, airlift, warehouses, FOBs,
+  base security incidents, and optional tactical camera views.
+recommended_stack:
+  backend:
+    runtime: ".NET 8"
+    api: "ASP.NET Core"
+    messaging: "NATS"
+    rpc: "gRPC"
+    database: "PostgreSQL + PostGIS"
+    cache: "Redis"
+  desktop_client:
+    framework: "Avalonia UI"
+    pattern: "MVVM"
+  visualization:
+    engine: "Unreal Engine 5.x"
+    geospatial: "Cesium for Unreal"
+  devops:
+    local: "Docker Compose"
+    observability: "OpenTelemetry + Seq/Grafana/Loki"
+priorities:
+  - deterministic simulation core
+  - scenario editor and operator dashboard
+  - renderer bridge contracts
+  - Unreal scene playback
+  - tactical camera overlay support
+non_goals_for_mvp:
+  - full combat simulation
+  - ballistic modeling
+  - multiplayer
+  - real classified integrations
+  - real live drone ingest
+first_deliverables:
+  - monorepo scaffold
+  - domain model
+  - tick-based simulation engine
+  - API
+  - operator desktop client skeleton
+  - renderer bridge skeleton
+  - starter scenario data

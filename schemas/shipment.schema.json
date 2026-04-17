@@ -1,0 +1,18 @@
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://military-logistics-sim/schemas/shipment.schema.json",
+  "title": "Shipment",
+  "type": "object",
+  "required": ["shipmentId", "commodityType", "quantity", "originNodeId", "destinationNodeId"],
+  "properties": {
+    "shipmentId": { "type": "string", "minLength": 1 },
+    "commodityType": { "type": "string", "enum": ["Fuel", "Ammo", "Medical", "Rations", "General"] },
+    "quantity": { "type": "number", "minimum": 0 },
+    "weight": { "type": "number", "minimum": 0 },
+    "volume": { "type": "number", "minimum": 0 },
+    "priority": { "type": "string" },
+    "originNodeId": { "type": "string", "minLength": 1 },
+    "destinationNodeId": { "type": "string", "minLength": 1 }
+  },
+  "additionalProperties": false
+}

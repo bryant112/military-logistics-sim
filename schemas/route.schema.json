@@ -1,0 +1,16 @@
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://military-logistics-sim/schemas/route.schema.json",
+  "title": "Route",
+  "type": "object",
+  "required": ["routeId", "mode", "startNodeId", "endNodeId", "estimatedTravelTimeMinutes"],
+  "properties": {
+    "routeId": { "type": "string", "minLength": 1 },
+    "mode": { "type": "string", "enum": ["Ground", "Rail", "Air"] },
+    "startNodeId": { "type": "string", "minLength": 1 },
+    "endNodeId": { "type": "string", "minLength": 1 },
+    "riskProfile": { "type": "string" },
+    "estimatedTravelTimeMinutes": { "type": "integer", "minimum": 1 }
+  },
+  "additionalProperties": false
+}

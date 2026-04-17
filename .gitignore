@@ -1,0 +1,12 @@
+﻿# Build artifacts
+**/bin/
+**/obj/
+
+# User/workspace
+.vs/
+*.user
+*.suo
+*.tmp
+
+# Local tooling state
+.dotnet/

@@ -1,0 +1,20 @@
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://military-logistics-sim/schemas/node.schema.json",
+  "title": "Node",
+  "type": "object",
+  "required": ["nodeId", "nodeType", "name", "lat", "lon", "capacity"],
+  "properties": {
+    "nodeId": { "type": "string", "minLength": 1 },
+    "nodeType": {
+      "type": "string",
+      "enum": ["Depot", "Warehouse", "FOB", "Base", "Airfield", "RailYard", "Checkpoint"]
+    },
+    "name": { "type": "string", "minLength": 1 },
+    "lat": { "type": "number", "minimum": -90, "maximum": 90 },
+    "lon": { "type": "number", "minimum": -180, "maximum": 180 },
+    "capacity": { "type": "integer", "minimum": 0 },
+    "securityPosture": { "type": "string" }
+  },
+  "additionalProperties": false
+}
