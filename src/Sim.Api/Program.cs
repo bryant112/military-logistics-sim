@@ -7,10 +7,16 @@ var builder = WebApplication.CreateBuilder(args);
 
 var rootPath = ResolveWorkspaceRoot();
 var starterScenarioPath = Path.Combine(rootPath, "schemas", "08_starter_scenario.json");
+var upperCumberlandSnapshotPath = Path.Combine(rootPath, "docs", "data", "upper-cumberland-realworld.json");
 
 builder.Services.AddSingleton(new ScenarioValidationService());
 builder.Services.AddSingleton<IScenarioSource>(new FileScenarioSource(starterScenarioPath));
 builder.Services.AddSingleton<IEnrichmentProvider, MockEnrichmentProvider>();
+builder.Services.AddSingleton<IAoiPlanningService>(new MockAoiPlanningService(upperCumberlandSnapshotPath));
+builder.Services.AddHttpClient<IRealWorldWeatherService, NoaaWeatherService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(12);
+});
 builder.Services.AddSingleton<ISimulationSessionManager, SimulationSessionManager>();
 builder.Services.AddHostedService<SimulationTickerHostedService>();
 
@@ -54,7 +60,21 @@ app.MapPost("/sessions", async (CreateSessionRequest request, IScenarioSource sc
     }
 
     var response = sessionManager.CreateSession(scenario, request.Seed);
+    try
+    {
+        await sessionManager.RefreshWeatherAsync(response.SessionId, true, cancellationToken);
+    }
+    catch
+    {
+        // First pass: keep session creation resilient even if the live weather feed is unavailable.
+    }
     return Results.Ok(response);
+});
+
+app.MapPost("/planning/ao", (AoiPlanningRequest request, IAoiPlanningService planningService) =>
+{
+    var response = planningService.PlanArea(request);
+    return response.IsWithinUsa ? Results.Ok(response) : Results.BadRequest(response);
 });
 
 app.MapPost("/sessions/{sessionId:guid}/start", (Guid sessionId, ISimulationSessionManager sessionManager) =>
@@ -122,6 +142,66 @@ app.MapGet("/sessions/{sessionId:guid}/enrichment", (Guid sessionId, ISimulation
     try
     {
         return Results.Ok(sessionManager.GetEnrichment(sessionId));
+    }
+    catch (KeyNotFoundException ex)
+    {
+        return Results.NotFound(ex.Message);
+    }
+});
+
+app.MapGet("/sessions/{sessionId:guid}/sitrep", (Guid sessionId, ISimulationSessionManager sessionManager) =>
+{
+    try
+    {
+        return Results.Ok(sessionManager.GetSitrep(sessionId));
+    }
+    catch (KeyNotFoundException ex)
+    {
+        return Results.NotFound(ex.Message);
+    }
+});
+
+app.MapGet("/sessions/{sessionId:guid}/world-data", (Guid sessionId, ISimulationSessionManager sessionManager) =>
+{
+    try
+    {
+        return Results.Ok(sessionManager.GetWorldDataStatus(sessionId));
+    }
+    catch (KeyNotFoundException ex)
+    {
+        return Results.NotFound(ex.Message);
+    }
+});
+
+app.MapPut("/sessions/{sessionId:guid}/dev-features", (Guid sessionId, SessionDevFeatureFlagsDto request, ISimulationSessionManager sessionManager) =>
+{
+    try
+    {
+        return Results.Ok(sessionManager.UpdateDevFeatures(sessionId, request));
+    }
+    catch (KeyNotFoundException ex)
+    {
+        return Results.NotFound(ex.Message);
+    }
+});
+
+app.MapPost("/sessions/{sessionId:guid}/world-data/refresh", async (Guid sessionId, ISimulationSessionManager sessionManager, CancellationToken cancellationToken) =>
+{
+    try
+    {
+        return Results.Ok(await sessionManager.RefreshWorldDataAsync(sessionId, cancellationToken));
+    }
+    catch (KeyNotFoundException ex)
+    {
+        return Results.NotFound(ex.Message);
+    }
+});
+
+app.MapPost("/sessions/{sessionId:guid}/weather/refresh", async (Guid sessionId, ISimulationSessionManager sessionManager, CancellationToken cancellationToken) =>
+{
+    try
+    {
+        return Results.Ok(await sessionManager.RefreshWeatherAsync(sessionId, true, cancellationToken));
     }
     catch (KeyNotFoundException ex)
     {

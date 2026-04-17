@@ -8,47 +8,283 @@
         d:DesignHeight="760"
         x:Class="Operator.Client.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        Title="Military Logistics Operator Client"
+        Title="Field Operations Board"
         Icon="/Assets/avalonia-logo.ico">
 
     <Grid Margin="12" RowDefinitions="Auto,Auto,*,*" ColumnDefinitions="*,*">
-        <Border Grid.Row="0" Grid.ColumnSpan="2" Padding="10" CornerRadius="8" Background="#12303C">
+        <Border Grid.Row="0" Grid.ColumnSpan="2" Classes="commandBar" Padding="14">
             <StackPanel Spacing="6">
-                <TextBlock FontSize="20" FontWeight="SemiBold" Text="Military Logistics Simulator - First Look" />
-                <TextBlock Text="{Binding SessionDisplay, StringFormat='Session: {0}'}" />
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel>
+                        <TextBlock FontSize="24" FontWeight="Bold" Text="FIELD LOGISTICS OPERATIONS BOARD" />
+                        <TextBlock Classes="panelSubtitle" Text="UPPER CUMBERLAND TASK FORCE // S-4 WATCHFLOOR // WAR-MOVIE FIELD CONSOLE" />
+                    </StackPanel>
+                    <Border Grid.Column="1" Classes="badge" HorizontalAlignment="Right">
+                        <TextBlock Classes="stencil" Text="AUTH // GREEN" />
+                    </Border>
+                </Grid>
+                <StackPanel Orientation="Horizontal" Spacing="0">
+                    <Border Classes="badge"><TextBlock Classes="stencil" Text="[AO] AREA OPS" /></Border>
+                    <Border Classes="badge"><TextBlock Classes="stencil" Text="[MSR] ROUTE NET" /></Border>
+                    <Border Classes="badge"><TextBlock Classes="stencil" Text="[LZ] AIR LIFT" /></Border>
+                    <Border Classes="badge"><TextBlock Classes="stencil" Text="[CP] CHECKPOINTS" /></Border>
+                    <Border Classes="badge"><TextBlock Classes="stencil" Text="[S4] SUSTAINMENT" /></Border>
+                </StackPanel>
+                <TextBlock Text="{Binding SessionDisplay, StringFormat='SESSION // {0}'}" />
                 <TextBlock Text="{Binding SimulationStatus}" />
-                <TextBlock Text="{Binding StatusMessage}" />
+                <TextBlock Text="{Binding LogisticsOverview}" TextWrapping="Wrap" />
+                <TextBlock Classes="muted" Text="{Binding StatusMessage}" />
             </StackPanel>
         </Border>
 
-        <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,10,0,10" Spacing="8">
-            <Button Content="Create Session" Command="{Binding CreateSessionCommand}" />
-            <Button Content="Start" Command="{Binding StartCommand}" />
-            <Button Content="Pause" Command="{Binding PauseCommand}" />
-            <Button Content="Reset" Command="{Binding ResetCommand}" />
-            <Button Content="Refresh" Command="{Binding RefreshCommand}" />
-        </StackPanel>
+        <Border Grid.Row="1" Grid.ColumnSpan="2" Classes="commandBar" Margin="0,10,0,10" Padding="10">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Classes="commandButton" Content="PLAN AO" Command="{Binding PlanAoCommand}" />
+                <Button Classes="commandButton" Content="CREATE SESSION" Command="{Binding CreateSessionCommand}" />
+                <Button Classes="commandButton" Content="START" Command="{Binding StartCommand}" />
+                <Button Classes="commandButton" Content="PAUSE" Command="{Binding PauseCommand}" />
+                <Button Classes="commandButton" Content="RESET" Command="{Binding ResetCommand}" />
+                <Button Classes="commandButton" Content="REFRESH" Command="{Binding RefreshCommand}" />
+                <Button Classes="commandButton" Content="UPDATE RWD" Command="{Binding UpdateWorldDataCommand}" />
+                <Button Classes="commandButton" Content="REFRESH WX" Command="{Binding RefreshWeatherCommand}" />
+                <Button Classes="commandButton" Content="APPLY DEV" Command="{Binding ApplyDevFeaturesCommand}" />
+            </StackPanel>
+        </Border>
 
-        <Border Grid.Row="2" Grid.Column="0" Margin="0,0,6,0" Padding="10" CornerRadius="8" Background="#1C2730">
+        <Border Grid.Row="2" Grid.Column="0" Classes="panel" Margin="0,0,6,0" Padding="10">
             <StackPanel>
-                <TextBlock FontSize="16" FontWeight="SemiBold" Text="Active Movements" Margin="0,0,0,8" />
-                <ScrollViewer VerticalScrollBarVisibility="Auto" Height="250">
-                    <ItemsControl ItemsSource="{Binding Movements}">
+                <TextBlock Classes="panelTitle" Text="[AO / GRID] MISSION BOARD" Margin="0,0,0,8" />
+                <TextBlock Classes="muted" Text="{Binding PlanningStatus}" TextWrapping="Wrap" Margin="0,0,0,8" />
+                <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto,Auto,Auto" Margin="0,0,0,10">
+                    <TextBlock Grid.Row="0" Grid.Column="0" Classes="stencil" Text="LAT" />
+                    <TextBlock Grid.Row="0" Grid.Column="1" Classes="stencil" Text="LON" />
+                    <TextBlock Grid.Row="0" Grid.Column="2" Classes="stencil" Text="RADIUS (MI)" />
+                    <TextBox Grid.Row="1" Grid.Column="0" Classes="fieldInput" Margin="0,4,8,8" Text="{Binding AoiCenterLat}" />
+                    <TextBox Grid.Row="1" Grid.Column="1" Classes="fieldInput" Margin="0,4,8,8" Text="{Binding AoiCenterLon}" />
+                    <TextBox Grid.Row="1" Grid.Column="2" Classes="fieldInput" Margin="0,4,0,8" Text="{Binding AoiRadiusMiles}" />
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Classes="stencil" Text="INFRA" />
+                    <TextBlock Grid.Row="2" Grid.Column="1" Classes="stencil" Text="FRICTION" />
+                    <TextBlock Grid.Row="2" Grid.Column="2" Classes="stencil" Text="GOV ALIGN" />
+                    <TextBox Grid.Row="3" Grid.Column="0" Classes="fieldInput" Margin="0,4,8,0" Text="{Binding InfrastructurePriority}" />
+                    <TextBox Grid.Row="3" Grid.Column="1" Classes="fieldInput" Margin="0,4,8,0" Text="{Binding CivilFriction}" />
+                    <TextBox Grid.Row="3" Grid.Column="2" Classes="fieldInput" Margin="0,4,0,0" Text="{Binding GovernmentFriendliness}" />
+                </Grid>
+
+                <Grid ColumnDefinitions="*,*,*" Margin="0,0,0,10">
+                    <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                        <TextBlock Classes="stencil" Text="THREAT" />
+                        <TextBox Classes="fieldInput" Margin="0,4,0,0" Text="{Binding ThreatLevel}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Margin="8,0,0,0">
+                        <TextBlock Classes="stencil" Text="WEATHER" />
+                        <TextBox Classes="fieldInput" Margin="0,4,0,0" Text="{Binding WeatherStress}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Margin="8,0,0,0">
+                        <TextBlock Classes="stencil" Text="PROPAGANDA" />
+                        <TextBox Classes="fieldInput" Margin="0,4,0,0" Text="{Binding PropagandaFactor}" />
+                    </StackPanel>
+                </Grid>
+
+                <TextBlock Classes="panelTitle" Text="[CIV / TRANSPO] IMPORT SUMMARY" Margin="0,0,0,8" />
+                <TextBlock Classes="muted" Text="{Binding TransportationSummary}" TextWrapping="Wrap" Margin="0,0,0,8" />
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Height="160">
+                    <StackPanel>
+                        <TextBlock Classes="stencil" Text="COUNTY POLITICAL CLIMATE" />
+                        <ItemsControl ItemsSource="{Binding CountyAllegiances}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Classes="card" Margin="0,0,0,8" Padding="8">
+                                        <StackPanel>
+                                            <TextBlock FontWeight="SemiBold" Text="{Binding CountyName}" />
+                                            <TextBlock Classes="muted" Text="{Binding CountySeat, StringFormat='SEAT // {0}'}" />
+                                            <TextBlock Text="{Binding Allegiance, StringFormat='ALIGN // {0}'}" />
+                                            <TextBlock Text="{Binding BluforSupport, StringFormat='BLUFOR // {0:P0}'}" />
+                                            <TextBlock Text="{Binding OpforSupport, StringFormat='OPFOR // {0:P0}'}" />
+                                            <TextBlock Classes="muted" Text="{Binding Notes}" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <TextBlock Classes="stencil" Text="COUNTIES" />
+                        <ItemsControl ItemsSource="{Binding RegionalCounties}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding ., StringFormat='• {0}'}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <TextBlock Classes="stencil" Text="HIGHWAY CORRIDORS" Margin="0,8,0,0" />
+                        <ItemsControl ItemsSource="{Binding HighwayCorridors}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding ., StringFormat='• {0}'}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <TextBlock Classes="stencil" Text="TRANSIT SERVICES" Margin="0,8,0,0" />
+                        <ItemsControl ItemsSource="{Binding TransitServices}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding ., StringFormat='• {0}'}" TextWrapping="Wrap" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <TextBlock Classes="panelTitle" Text="[MARKERS] FEATURE HIGHLIGHTS" Margin="0,12,0,8" />
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Height="160">
+                    <ItemsControl ItemsSource="{Binding ImportedFeatures}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Grid ColumnDefinitions="180,90,100,80,*" Margin="0,0,0,4">
-                                    <TextBlock Grid.Column="0" Text="{Binding MovementId}" />
-                                    <TextBlock Grid.Column="1" Text="{Binding Mode}" />
-                                    <TextBlock Grid.Column="2" Text="{Binding Status}" />
-                                    <TextBlock Grid.Column="3" Text="{Binding Progress, StringFormat={}{0:P1}}" />
-                                    <TextBlock Grid.Column="4" Text="{Binding EtaDriftMinutes, StringFormat='ETA drift: {0}m'}" />
-                                </Grid>
+                                <Border Classes="card" Margin="0,0,0,8" Padding="8">
+                                    <StackPanel>
+                                        <TextBlock FontWeight="SemiBold" Text="{Binding Name}" />
+                                        <TextBlock Classes="muted" Text="{Binding Category, StringFormat='TYPE // {0}'}" />
+                                        <TextBlock Classes="muted" Text="{Binding County, StringFormat='COUNTY // {0}'}" />
+                                        <TextBlock Text="{Binding Notes}" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Border>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </ScrollViewer>
 
-                <TextBlock FontSize="16" FontWeight="SemiBold" Text="Incidents" Margin="0,12,0,8" />
+                <TextBlock Classes="panelTitle" Text="[PLATFORMS] TRANSPORT PROFILES" Margin="0,12,0,8" />
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Height="220">
+                    <ItemsControl ItemsSource="{Binding TransportProfiles}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Classes="card" Margin="0,0,0,8" Padding="8">
+                                    <StackPanel Spacing="2">
+                                        <TextBlock FontWeight="SemiBold" Text="{Binding Platform}" />
+                                        <TextBlock Classes="muted" Text="{Binding Category, StringFormat='CLASS // {0}'}" />
+                                        <TextBlock Text="{Binding ReferenceVehicle, StringFormat='REFERENCE // {0}'}" TextWrapping="Wrap" />
+                                        <TextBlock Text="{Binding Crew, StringFormat='CREW // {0}'}" />
+                                        <TextBlock Text="{Binding PassengerCapacity, StringFormat='CAPACITY // {0}'}" />
+                                        <TextBlock Text="{Binding FuelEconomyMpg, StringFormat='MPG // {0:F1}'}" />
+                                        <TextBlock Text="{Binding FuelBurnGallonsPerHourRoad, StringFormat='ROAD BURN // {0:F1} GAL/HR'}" />
+                                        <TextBlock Text="{Binding OperationalRangeMiles, StringFormat='RANGE // {0:F0} MI'}" />
+                                        <TextBlock Text="{Binding TypicalCruiseSpeedMph, StringFormat='CRUISE // {0:F0} MPH'}" />
+                                        <TextBlock Text="{Binding MaintenanceCostUsdPer1000Miles, StringFormat='MAINT // ${0:F0} / 1K MI'}" />
+                                        <TextBlock Text="{Binding BreakdownEventsPer100kMiles, StringFormat='BREAKDOWNS // {0:F1} / 100K MI'}" />
+                                        <TextBlock Text="{Binding SurvivabilityScore, StringFormat='SURVIVABILITY // {0:P0}'}" />
+                                        <TextBlock Classes="muted" Text="{Binding DataConfidence, StringFormat='CONFIDENCE // {0}'}" />
+                                        <TextBlock Text="{Binding ProtectionSummary}" TextWrapping="Wrap" />
+                                        <TextBlock Classes="muted" Text="{Binding EstimateBasis}" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <TextBlock Classes="panelTitle" Text="[OBJ] RANDOM OBJECTIVES" Margin="0,0,0,8" />
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Height="150">
+                    <ItemsControl ItemsSource="{Binding Objectives}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Classes="card" Margin="0,0,0,8" Padding="8">
+                                    <StackPanel>
+                                        <TextBlock FontWeight="SemiBold" Text="{Binding Title}" />
+                                        <TextBlock Classes="muted" Text="{Binding Category, StringFormat='TYPE // {0}'}" />
+                                        <TextBlock Text="{Binding Priority, StringFormat='PRIORITY // {0}'}" />
+                                        <TextBlock Text="{Binding Description}" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <TextBlock Classes="panelTitle" Text="[ZONES] 10 SQ MI CONTROL STRIPS" Margin="0,12,0,8" />
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Height="120">
+                    <ItemsControl ItemsSource="{Binding SupportZones}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="96,82,74,74,92,80,*" Margin="0,0,0,4">
+                                    <TextBlock Grid.Column="0" Text="{Binding ZoneId}" />
+                                    <TextBlock Grid.Column="1" Text="{Binding CountyName}" />
+                                    <TextBlock Grid.Column="2" Text="{Binding BluforSupport, StringFormat={}{0:P0}}" />
+                                    <TextBlock Grid.Column="3" Text="{Binding OpforSupport, StringFormat={}{0:P0}}" />
+                                    <TextBlock Grid.Column="4" Text="{Binding GovernmentStance}" />
+                                    <TextBlock Grid.Column="5" Text="{Binding ElectionLean}" />
+                                    <TextBlock Grid.Column="6" Classes="muted" Text="{Binding Notes}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="2" Grid.Column="1" Classes="panelAlt" Margin="6,0,0,0" Padding="10">
+            <StackPanel>
+                <TextBlock Classes="panelTitle" Text="[SITREP / RADAR] LIVE STATUS BOARD" Margin="0,0,0,8" />
+                <TextBlock Classes="muted" Text="{Binding SitrepOverview}" Margin="0,0,0,8" />
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Height="380">
+                    <ItemsControl ItemsSource="{Binding SitrepPins}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Classes="card" Margin="0,0,0,8" Padding="8">
+                                    <Grid ColumnDefinitions="12,140,*">
+                                        <Border Grid.Column="0"
+                                                Width="10"
+                                                Height="10"
+                                                CornerRadius="5"
+                                                Background="{Binding PinTone}" />
+                                        <TextBlock Grid.Column="1" Text="{Binding MovementId}" FontWeight="SemiBold" Margin="8,0,0,0" />
+                                        <StackPanel Grid.Column="2" Margin="8,0,0,0">
+                                            <TextBlock Text="{Binding Summary}" TextWrapping="Wrap" />
+                                            <TextBlock Classes="muted" Text="{Binding ThreatExposure, StringFormat='THREAT // {0:P0}'}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="3" Grid.Column="0" Classes="panel" Margin="0,12,6,0" Padding="10">
+            <StackPanel>
+                <TextBlock Classes="panelTitle" Text="[MOV / CONVOY] ACTIVE MOVEMENTS" Margin="0,0,0,8" />
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Height="180">
+                    <ItemsControl ItemsSource="{Binding Movements}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Classes="card" Margin="0,0,0,8" Padding="8">
+                                    <StackPanel>
+                                        <Grid ColumnDefinitions="140,70,80,70,70,80,90,*" Margin="0,0,0,4">
+                                            <TextBlock Grid.Column="0" Text="{Binding MovementId}" />
+                                            <TextBlock Grid.Column="1" Text="{Binding Mode}" />
+                                            <TextBlock Grid.Column="2" Text="{Binding Status}" />
+                                            <TextBlock Grid.Column="3" Text="{Binding Progress, StringFormat={}{0:P1}}" />
+                                            <TextBlock Grid.Column="4" Text="{Binding CrewSize, StringFormat='CREW {0}'}" />
+                                            <TextBlock Grid.Column="5" Text="{Binding CrewFatigueIndex, StringFormat='FAT {0:P0}'}" />
+                                            <TextBlock Grid.Column="6" Text="{Binding RouteSeverityIndex, StringFormat='RSI {0:P0}'}" />
+                                            <TextBlock Grid.Column="7" Text="{Binding Morale, StringFormat='MORALE {0:P0}'}" />
+                                        </Grid>
+                                        <Grid ColumnDefinitions="150,130,120,*">
+                                            <TextBlock Grid.Column="0" Text="{Binding ReportingConfidence, StringFormat='LOGSTAT {0:P0}'}" />
+                                            <TextBlock Grid.Column="1" Text="{Binding CargoDamageRisk, StringFormat='CARGO {0:P0}'}" />
+                                            <TextBlock Grid.Column="2" Text="{Binding ConcealmentScore, StringFormat='CONCEAL {0:P0}'}" />
+                                            <TextBlock Grid.Column="3" Text="{Binding EtaDriftMinutes, StringFormat='ETA DRIFT {0}M'}" />
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <TextBlock Classes="panelTitle" Text="[INC] INCIDENTS" Margin="0,12,0,8" />
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Height="180">
                     <ItemsControl ItemsSource="{Binding Incidents}">
                         <ItemsControl.ItemTemplate>
@@ -63,23 +299,43 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </ScrollViewer>
+
+                <TextBlock Classes="panelTitle" Text="[ASSET] PRESSURE" Margin="0,12,0,8" />
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Height="120">
+                    <ItemsControl ItemsSource="{Binding Assets}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="130,110,110,*" Margin="0,0,0,4">
+                                    <TextBlock Grid.Column="0" Text="{Binding AssetId}" />
+                                    <TextBlock Grid.Column="1" Text="{Binding FuelState, StringFormat='Fuel: {0:F1}'}" />
+                                    <TextBlock Grid.Column="2" Text="{Binding MaintenanceBacklog, StringFormat='Maint: {0:F1}'}" />
+                                    <TextBlock Grid.Column="3" Text="{Binding Readiness, StringFormat='Readiness: {0:P0}'}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
             </StackPanel>
         </Border>
 
-        <Border Grid.Row="2" Grid.Column="1" Margin="6,0,0,0" Padding="10" CornerRadius="8" Background="#18232A">
+        <Border Grid.Row="3" Grid.Column="1" Classes="panelAlt" Margin="6,12,0,0" Padding="10">
             <StackPanel>
-                <TextBlock FontSize="16" FontWeight="SemiBold" Text="Enrichment Snapshot" Margin="0,0,0,8" />
-                <ScrollViewer VerticalScrollBarVisibility="Auto" Height="210">
+                <TextBlock Classes="panelTitle" Text="[ROUTE INTEL / GROUND TRUTH] RSI BOARD" Margin="0,0,0,8" />
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Height="150">
                     <ItemsControl ItemsSource="{Binding EnrichmentSnapshots}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border Margin="0,0,0,8" Padding="8" CornerRadius="6" Background="#24303B">
+                                <Border Classes="card" Margin="0,0,0,8" Padding="8">
                                     <StackPanel>
                                         <TextBlock FontWeight="SemiBold" Text="{Binding RouteId}" />
-                                        <TextBlock Text="{Binding GroundCorridorMetrics.AverageSpeedLimitKph, StringFormat='Speed limit avg: {0} kph'}" />
-                                        <TextBlock Text="{Binding GroundCorridorMetrics.CongestionIndex, StringFormat='Congestion: {0:F2}'}" />
-                                        <TextBlock Text="{Binding SettlementProfile.DensityBand, StringFormat='Density band: {0}'}" />
-                                        <TextBlock Text="{Binding GeneratedStructureSummary.EstimatedStructureCount, StringFormat='Estimated structures: {0}'}" />
+                                        <TextBlock Text="{Binding GroundCorridorMetrics.AverageSpeedLimitKph, StringFormat='AVG SPEED // {0} KPH'}" />
+                                        <TextBlock Text="{Binding GroundCorridorMetrics.CongestionIndex, StringFormat='CONGESTION // {0:F2}'}" />
+                                        <TextBlock Text="{Binding GroundCorridorMetrics.RouteSeverityIndex, StringFormat='RSI // {0:P0}'}" />
+                                        <TextBlock Text="{Binding GroundCorridorMetrics.SurfaceAttritionFactor, StringFormat='SAF // {0:P0}'}" />
+                                        <TextBlock Text="{Binding GroundCorridorMetrics.CargoDamageRisk, StringFormat='CARGO RISK // {0:P0}'}" />
+                                        <TextBlock Text="{Binding SettlementProfile.DensityBand, StringFormat='DENSITY // {0}'}" />
+                                        <TextBlock Text="{Binding GeneratedStructureSummary.EstimatedStructureCount, StringFormat='STRUCTURES // {0}'}" />
+                                        <TextBlock Classes="muted" Text="{Binding Segments.Count, StringFormat='SEGMENTS // {0}'}" />
                                     </StackPanel>
                                 </Border>
                             </DataTemplate>
@@ -87,15 +343,31 @@
                     </ItemsControl>
                 </ScrollViewer>
 
-                <TextBlock FontSize="16" FontWeight="SemiBold" Text="Timeline" Margin="0,10,0,8" />
-                <ScrollViewer VerticalScrollBarVisibility="Auto" Height="220">
+                <TextBlock Classes="panelTitle" Text="[RWD / WX CONTROL] TEST HARNESS" Margin="0,10,0,8" />
+                <Border Classes="card" Padding="8" Margin="0,0,0,8">
+                    <StackPanel Spacing="6">
+                        <TextBlock Classes="muted" Text="{Binding WorldDataOverview}" TextWrapping="Wrap" />
+                        <TextBlock Classes="muted" Text="{Binding WeatherOverview}" TextWrapping="Wrap" />
+                        <WrapPanel>
+                            <CheckBox Content="LIVE WEATHER" IsChecked="{Binding UseRealWorldWeather}" Margin="0,0,14,6" />
+                            <CheckBox Content="AUTO WX" IsChecked="{Binding AutoWeatherRefreshEnabled}" Margin="0,0,14,6" />
+                            <CheckBox Content="MANUAL RWD" IsChecked="{Binding AllowManualWorldDataRefresh}" Margin="0,0,14,6" />
+                            <CheckBox Content="MANUAL WX" IsChecked="{Binding AllowManualWeatherRefresh}" Margin="0,0,14,6" />
+                            <CheckBox Content="FREEZE STATIC RWD" IsChecked="{Binding FreezeStaticRwdDuringRun}" Margin="0,0,14,6" />
+                            <CheckBox Content="WX FALLBACK" IsChecked="{Binding UseMockWeatherFallback}" Margin="0,0,14,6" />
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+
+                <TextBlock Classes="panelTitle" Text="[TIMELINE] WATCHFLOOR FEED" Margin="0,10,0,8" />
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Height="340">
                     <ItemsControl ItemsSource="{Binding TimelineEvents}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Grid ColumnDefinitions="60,140,*" Margin="0,0,0,4">
                                     <TextBlock Grid.Column="0" Text="{Binding Tick}" />
                                     <TextBlock Grid.Column="1" Text="{Binding EventType}" />
-                                    <TextBlock Grid.Column="2" Text="{Binding Message}" />
+                                    <TextBlock Grid.Column="2" Classes="muted" Text="{Binding Message}" />
                                 </Grid>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>

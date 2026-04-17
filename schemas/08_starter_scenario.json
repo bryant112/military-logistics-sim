@@ -6,6 +6,15 @@
   "durationMinutes": 360,
   "terrainReference": "starter-map-01",
   "rulesetId": "baseline-logistics-v1",
+  "realism": {
+    "reportingQuality": 0.74,
+    "sustainmentRhythmAdherence": 0.78,
+    "configuredLoadQuality": 0.81,
+    "maintenanceDiscipline": 0.76,
+    "securityDiscipline": 0.79,
+    "crewEnduranceHours": 10.0,
+    "useAssistantDrivers": true
+  },
   "nodes": [
     {
       "nodeId": "depot-alpha",

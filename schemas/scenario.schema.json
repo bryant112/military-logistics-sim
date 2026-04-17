@@ -23,6 +23,27 @@
     "durationMinutes": { "type": "integer", "minimum": 1 },
     "terrainReference": { "type": "string" },
     "rulesetId": { "type": "string" },
+    "realism": {
+      "type": "object",
+      "properties": {
+        "reportingQuality": { "type": "number", "minimum": 0, "maximum": 1 },
+        "sustainmentRhythmAdherence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "configuredLoadQuality": { "type": "number", "minimum": 0, "maximum": 1 },
+        "maintenanceDiscipline": { "type": "number", "minimum": 0, "maximum": 1 },
+        "securityDiscipline": { "type": "number", "minimum": 0, "maximum": 1 },
+        "umoPlanningQuality": { "type": "number", "minimum": 0, "maximum": 1 },
+        "loadingTeamChiefQuality": { "type": "number", "minimum": 0, "maximum": 1 },
+        "weatherSeverity": { "type": "number", "minimum": 0, "maximum": 1 },
+        "dustExposure": { "type": "number", "minimum": 0, "maximum": 1 },
+        "crewEnduranceHours": { "type": "number", "exclusiveMinimum": 0 },
+        "useAssistantDrivers": { "type": "boolean" },
+        "useTiedowns": { "type": "boolean" },
+        "useBlockingAndBracing": { "type": "boolean" },
+        "usePalletRestraint": { "type": "boolean" },
+        "useCargoIsolation": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
     "nodes": { "type": "array", "items": { "$ref": "./node.schema.json" } },
     "routes": { "type": "array", "items": { "$ref": "./route.schema.json" } },
     "assets": { "type": "array", "items": { "$ref": "./asset.schema.json" } },

@@ -14,14 +14,29 @@ public sealed class MovementRuntime
     public double EtaDriftMinutes { get; set; }
     public string Status { get; set; } = "Planned";
     public bool Delivered { get; set; }
+    public int CrewSize { get; set; }
+    public bool AssistantDriverAssigned { get; set; }
+    public double CrewFatigueHours { get; set; }
+    public double CrewFatigueIndex { get; set; }
+    public double ReportingConfidence { get; set; }
+    public double ConfiguredLoadQuality { get; set; }
+    public double SupportScore { get; set; }
+    public double ThreatExposure { get; set; }
+    public double Morale { get; set; } = 1.0;
+    public double CargoDamageRisk { get; set; }
+    public double ConcealmentScore { get; set; }
+    public double RouteSeverityIndex { get; set; }
+    public double SurfaceAttritionFactor { get; set; }
 }
 
 public sealed class AssetRuntime
 {
     public string AssetId { get; init; } = string.Empty;
     public AssetType AssetType { get; init; }
+    public int PayloadCapacity { get; init; }
     public double FuelState { get; set; }
-    public double Readiness { get; init; }
+    public double Readiness { get; set; }
+    public double MaintenanceBacklog { get; set; }
 }
 
 public sealed class ShipmentRuntime
@@ -65,4 +80,26 @@ public sealed class SimulationRuntimeState
     public List<IncidentRuntime> Incidents { get; init; } = new();
     public List<TimelineEvent> Timeline { get; init; } = new();
     public HashSet<string> IncidentUniqueness { get; init; } = new();
+    public HashSet<string> EventUniqueness { get; init; } = new();
+    public WorldDataRuntime WorldData { get; init; } = new();
+}
+
+public sealed class WorldDataRuntime
+{
+    public string StaticDataPolicy { get; set; } = "Initial setup or Update Real World Data";
+    public string WeatherPolicy { get; set; } = "Game start and every 30 minutes";
+    public string WorldSnapshotSource { get; set; } = string.Empty;
+    public string WeatherSource { get; set; } = "mock-live-weather";
+    public double QueryLat { get; set; }
+    public double QueryLon { get; set; }
+    public DateTimeOffset WorldSnapshotCapturedAt { get; set; }
+    public DateTimeOffset LastWorldDataRefreshAt { get; set; }
+    public DateTimeOffset LastWeatherRefreshAt { get; set; }
+    public DateTimeOffset NextWeatherRefreshAt { get; set; }
+    public int WeatherRefreshIntervalMinutes { get; set; } = 30;
+    public bool AutoWeatherRefreshEnabled { get; set; } = true;
+    public double CurrentWeatherSeverity { get; set; }
+    public string CurrentWeatherBand { get; set; } = "Nominal";
+    public SessionDevFeatureFlagsDto DevFeatures { get; set; } = new();
+    public RealWorldWeatherSnapshotDto WeatherSnapshot { get; set; } = new();
 }
