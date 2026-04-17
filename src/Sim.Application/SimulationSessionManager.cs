@@ -113,7 +113,12 @@ public sealed class SimulationSessionManager : ISimulationSessionManager
                     CrewFatigueIndex = Math.Round(m.CrewFatigueIndex, 2),
                     ReportingConfidence = Math.Round(m.ReportingConfidence, 2),
                     SupportScore = Math.Round(m.SupportScore, 2),
-                    ThreatExposure = Math.Round(m.ThreatExposure, 2)
+                    ThreatExposure = Math.Round(m.ThreatExposure, 2),
+                    Morale = Math.Round(m.Morale, 2),
+                    CargoDamageRisk = Math.Round(m.CargoDamageRisk, 2),
+                    ConcealmentScore = Math.Round(m.ConcealmentScore, 2),
+                    RouteSeverityIndex = Math.Round(m.RouteSeverityIndex, 2),
+                    SurfaceAttritionFactor = Math.Round(m.SurfaceAttritionFactor, 2)
                 }).ToList(),
                 Assets = runtime.AssetsById.Values.Select(a => new AssetStateDto
                 {
@@ -190,7 +195,7 @@ public sealed class SimulationSessionManager : ISimulationSessionManager
                 CrewFatigueIndex = Math.Round(m.CrewFatigueIndex, 2),
                 ReportingConfidence = Math.Round(m.ReportingConfidence, 2),
                 PinTone = DeterminePinTone(m, runtime.AssetsById[m.AssetId]),
-                Summary = $"{m.Status} | ETA drift {m.EtaDriftMinutes:F1}m | fatigue {m.CrewFatigueIndex:P0} | LOGSTAT {m.ReportingConfidence:P0}"
+                Summary = $"{m.Status} | ETA drift {m.EtaDriftMinutes:F1}m | RSI {m.RouteSeverityIndex:P0} | morale {m.Morale:P0} | damage {m.CargoDamageRisk:P0}"
             }).ToList();
 
             return new SitrepResponse
@@ -276,6 +281,7 @@ public sealed class SimulationSessionManager : ISimulationSessionManager
             {
                 AssetId = asset.AssetId,
                 AssetType = asset.AssetType,
+                PayloadCapacity = asset.PayloadCapacity,
                 FuelState = asset.FuelState,
                 Readiness = asset.Readiness,
                 MaintenanceBacklog = Math.Round((1.0 - asset.Readiness) * 4.0, 2)
@@ -403,18 +409,21 @@ public sealed class SimulationSessionManager : ISimulationSessionManager
             ConfiguredLoadQuality = Math.Round(realism.ConfiguredLoadQuality, 2),
             SecurityDiscipline = Math.Round(realism.SecurityDiscipline, 2),
             AverageCrewFatigueIndex = Math.Round(runtime.Movements.Count == 0 ? 0 : runtime.Movements.Average(m => m.CrewFatigueIndex), 2),
-            AverageMaintenanceBacklog = Math.Round(runtime.AssetsById.Count == 0 ? 0 : runtime.AssetsById.Values.Average(a => a.MaintenanceBacklog), 2)
+            AverageMaintenanceBacklog = Math.Round(runtime.AssetsById.Count == 0 ? 0 : runtime.AssetsById.Values.Average(a => a.MaintenanceBacklog), 2),
+            AverageMorale = Math.Round(runtime.Movements.Count == 0 ? 0 : runtime.Movements.Average(m => m.Morale), 2),
+            AverageRouteSeverityIndex = Math.Round(runtime.Movements.Count == 0 ? 0 : runtime.Movements.Average(m => m.RouteSeverityIndex), 2),
+            AverageCargoDamageRisk = Math.Round(runtime.Movements.Count == 0 ? 0 : runtime.Movements.Average(m => m.CargoDamageRisk), 2)
         };
     }
 
     private static string DeterminePinTone(MovementRuntime movement, AssetRuntime asset)
     {
-        if (movement.Status == "Delayed" || movement.ThreatExposure >= 0.7 || asset.FuelState <= 25)
+        if (movement.Status == "Delayed" || movement.ThreatExposure >= 0.7 || asset.FuelState <= 25 || movement.RouteSeverityIndex >= 0.7 || movement.CargoDamageRisk >= 0.55)
         {
             return "Red";
         }
 
-        if (movement.CrewFatigueIndex >= 0.45 || movement.ReportingConfidence <= 0.6 || asset.MaintenanceBacklog >= 2.5)
+        if (movement.CrewFatigueIndex >= 0.45 || movement.ReportingConfidence <= 0.6 || asset.MaintenanceBacklog >= 2.5 || movement.Morale <= 0.55)
         {
             return "Amber";
         }

@@ -26,6 +26,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private double _governmentFriendliness = 0.65;
     private double _threatLevel = 0.4;
     private double _weatherStress = 0.2;
+    private double _propagandaFactor = 0.35;
     private string _planningStatus = "AO planner idle.";
     private string _transportationSummary = "No imported transport data loaded yet.";
 
@@ -107,6 +108,12 @@ public partial class MainWindowViewModel : ViewModelBase
         set => SetProperty(ref _weatherStress, value);
     }
 
+    public double PropagandaFactor
+    {
+        get => _propagandaFactor;
+        set => SetProperty(ref _propagandaFactor, value);
+    }
+
     public string PlanningStatus
     {
         get => _planningStatus;
@@ -128,9 +135,11 @@ public partial class MainWindowViewModel : ViewModelBase
     public ObservableCollection<SupportZoneDto> SupportZones { get; } = new();
     public ObservableCollection<MovementPinDto> SitrepPins { get; } = new();
     public ObservableCollection<string> RegionalCounties { get; } = new();
+    public ObservableCollection<CountyAllegianceDto> CountyAllegiances { get; } = new();
     public ObservableCollection<string> HighwayCorridors { get; } = new();
     public ObservableCollection<string> TransitServices { get; } = new();
     public ObservableCollection<ImportedFeatureDto> ImportedFeatures { get; } = new();
+    public ObservableCollection<TransportRealismProfileDto> TransportProfiles { get; } = new();
 
     public IAsyncRelayCommand PlanAoCommand { get; }
     public IAsyncRelayCommand CreateSessionCommand { get; }
@@ -165,7 +174,8 @@ public partial class MainWindowViewModel : ViewModelBase
                     CivilFriction = CivilFriction,
                     GovernmentFriendliness = GovernmentFriendliness,
                     ThreatLevel = ThreatLevel,
-                    WeatherStress = WeatherStress
+                    WeatherStress = WeatherStress,
+                    PropagandaFactor = PropagandaFactor
                 }
             };
 
@@ -181,11 +191,14 @@ public partial class MainWindowViewModel : ViewModelBase
             ReplaceCollection(Objectives, plan.Objectives);
             ReplaceCollection(SupportZones, plan.SupportZones);
             ReplaceCollection(RegionalCounties, plan.Transportation.Counties);
+            ReplaceCollection(CountyAllegiances, plan.Transportation.CountyAllegiances);
             ReplaceCollection(HighwayCorridors, plan.Transportation.HighwayCorridors);
             ReplaceCollection(TransitServices, plan.Transportation.TransitServices);
             ReplaceCollection(ImportedFeatures, plan.Transportation.FeatureHighlights);
-            PlanningStatus = $"{plan.ValidationMessage} Roads {plan.Transportation.MajorRoadSegments}, fuel sites {plan.Transportation.FuelSites}, Army Corps campgrounds {plan.Transportation.ArmyCorpsCampgrounds}.";
-            TransportationSummary = $"{plan.Transportation.DataSource} | {plan.Transportation.DatasetCoverage} | speed baseline {plan.Transportation.AverageSpeedLimitKph:F1} kph | traffic {plan.Transportation.TrafficVehiclesPerHour:F0} vph";
+            ReplaceCollection(TransportProfiles, plan.Transportation.TransportProfiles);
+            var hostileZones = plan.SupportZones.Count(zone => zone.GovernmentStance is "Restricted" or "Hostile");
+            PlanningStatus = $"{plan.ValidationMessage} Roads {plan.Transportation.MajorRoadSegments}, fuel sites {plan.Transportation.FuelSites}, Army Corps campgrounds {plan.Transportation.ArmyCorpsCampgrounds}, hostile/restricted zones {hostileZones}.";
+            TransportationSummary = $"{plan.Transportation.DataSource} | {plan.Transportation.DatasetCoverage} | speed baseline {plan.Transportation.AverageSpeedLimitKph:F1} kph | traffic {plan.Transportation.TrafficVehiclesPerHour:F0} vph | profiles {plan.Transportation.TransportProfiles.Count} | propaganda {PropagandaFactor:P0}";
             StatusMessage = "AO planning complete.";
         }
         catch (Exception ex)
@@ -307,7 +320,7 @@ public partial class MainWindowViewModel : ViewModelBase
             ReplaceCollection(SitrepPins, sitrep.MovementPins);
 
             SimulationStatus = $"{state.Status} @ tick {state.Tick} ({state.SimulatedTime:O})";
-            LogisticsOverview = $"Reporting {state.Overview.ReportingQuality:P0} | Rhythm {state.Overview.SustainmentRhythmAdherence:P0} | Loads {state.Overview.ConfiguredLoadQuality:P0} | Avg fatigue {state.Overview.AverageCrewFatigueIndex:P0} | Avg maint backlog {state.Overview.AverageMaintenanceBacklog:F1}";
+            LogisticsOverview = $"Reporting {state.Overview.ReportingQuality:P0} | Rhythm {state.Overview.SustainmentRhythmAdherence:P0} | Loads {state.Overview.ConfiguredLoadQuality:P0} | Avg fatigue {state.Overview.AverageCrewFatigueIndex:P0} | Avg morale {state.Overview.AverageMorale:P0} | Avg RSI {state.Overview.AverageRouteSeverityIndex:P0} | Avg cargo risk {state.Overview.AverageCargoDamageRisk:P0} | Avg maint backlog {state.Overview.AverageMaintenanceBacklog:F1}";
             SitrepOverview = $"{sitrep.OverallStatus} | Delayed {sitrep.DelayedMovements} | Incidents {sitrep.ActiveIncidents} | Critical assets {sitrep.CriticalAssets}";
             StatusMessage = "Refresh complete.";
         }

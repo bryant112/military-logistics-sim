@@ -81,6 +81,10 @@ public sealed class ScenarioValidationService
         ValidateUnitInterval(errors, scenario.Realism.ConfiguredLoadQuality, "Realism.ConfiguredLoadQuality");
         ValidateUnitInterval(errors, scenario.Realism.MaintenanceDiscipline, "Realism.MaintenanceDiscipline");
         ValidateUnitInterval(errors, scenario.Realism.SecurityDiscipline, "Realism.SecurityDiscipline");
+        ValidateUnitInterval(errors, scenario.Realism.UmoPlanningQuality, "Realism.UmoPlanningQuality");
+        ValidateUnitInterval(errors, scenario.Realism.LoadingTeamChiefQuality, "Realism.LoadingTeamChiefQuality");
+        ValidateUnitInterval(errors, scenario.Realism.WeatherSeverity, "Realism.WeatherSeverity");
+        ValidateUnitInterval(errors, scenario.Realism.DustExposure, "Realism.DustExposure");
 
         if (scenario.Nodes.Count == 0)
         {

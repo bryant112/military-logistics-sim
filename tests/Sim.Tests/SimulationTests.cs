@@ -92,8 +92,16 @@ public sealed class SimulationTests
             ConfiguredLoadQuality = 0.85,
             MaintenanceDiscipline = 0.85,
             SecurityDiscipline = 0.8,
+            UmoPlanningQuality = 0.88,
+            LoadingTeamChiefQuality = 0.86,
+            WeatherSeverity = 0.15,
+            DustExposure = 0.1,
             CrewEnduranceHours = 1.0,
-            UseAssistantDrivers = true
+            UseAssistantDrivers = true,
+            UseTiedowns = true,
+            UseBlockingAndBracing = true,
+            UsePalletRestraint = true,
+            UseCargoIsolation = true
         };
 
         var strainedScenario = BuildScenario();
@@ -104,8 +112,16 @@ public sealed class SimulationTests
             ConfiguredLoadQuality = 0.4,
             MaintenanceDiscipline = 0.4,
             SecurityDiscipline = 0.45,
+            UmoPlanningQuality = 0.35,
+            LoadingTeamChiefQuality = 0.3,
+            WeatherSeverity = 0.65,
+            DustExposure = 0.7,
             CrewEnduranceHours = 1.0,
-            UseAssistantDrivers = false
+            UseAssistantDrivers = false,
+            UseTiedowns = false,
+            UseBlockingAndBracing = false,
+            UsePalletRestraint = false,
+            UseCargoIsolation = false
         };
 
         var supportedManager = new SimulationSessionManager(new MockEnrichmentProvider());
@@ -151,8 +167,9 @@ public sealed class SimulationTests
         var timeline = manager.GetTimeline(session.SessionId);
 
         Assert.True(state.Overview.AverageCrewFatigueIndex > 0);
+        Assert.True(state.Overview.AverageRouteSeverityIndex > 0);
         Assert.Contains(state.Assets, a => a.MaintenanceBacklog > 0);
-        Assert.Contains(timeline.Events, e => e.EventType is "FatigueWarning" or "ReportingGap" or "MaintenanceDelay");
+        Assert.Contains(timeline.Events, e => e.EventType is "FatigueWarning" or "ReportingGap" or "MaintenanceDelay" or "SurfaceAttritionWarning" or "CargoDamageRisk");
     }
 
     [Fact]
@@ -171,7 +188,8 @@ public sealed class SimulationTests
                 CivilFriction = 0.4,
                 GovernmentFriendliness = 0.55,
                 ThreatLevel = 0.5,
-                WeatherStress = 0.2
+                WeatherStress = 0.2,
+                PropagandaFactor = 0.35
             }
         });
 
@@ -180,8 +198,55 @@ public sealed class SimulationTests
         Assert.NotEmpty(response.SupportZones);
         Assert.True(response.Transportation.IsImportedRegionalSnapshot);
         Assert.Contains("Putnam", response.Transportation.Counties);
+        Assert.NotEmpty(response.Transportation.CountyAllegiances);
+        Assert.NotEmpty(response.Transportation.TransportProfiles);
+        Assert.Contains(response.Transportation.TransportProfiles, profile => profile.Category == "Civilian");
+        Assert.Contains(response.Transportation.TransportProfiles, profile => profile.Category == "Military");
+        Assert.Contains(response.SupportZones, zone => !string.IsNullOrWhiteSpace(zone.CountyName) && zone.Allegiance is "BLUFOR" or "OPFOR" or "Contested");
         Assert.Contains(response.Transportation.FeatureHighlights, feature => feature.Name.Contains("Upper Cumberland Regional Airport", StringComparison.OrdinalIgnoreCase));
         Assert.All(response.SupportZones, z => Assert.Equal(10.0, z.AreaSquareMiles));
+    }
+
+    [Fact]
+    public void HigherPropagandaFactor_PushesUpperCumberlandFurtherTowardOpfor()
+    {
+        var planner = new MockAoiPlanningService(Path.Combine(ResolveWorkspaceRoot(), "docs", "data", "upper-cumberland-realworld.json"));
+        var lowPropaganda = planner.PlanArea(new AoiPlanningRequest
+        {
+            CenterLat = 36.1627,
+            CenterLon = -85.5016,
+            RadiusMiles = 30,
+            Seed = 42,
+            Criteria = new SituationCriteriaDto
+            {
+                InfrastructurePriority = 0.7,
+                CivilFriction = 0.35,
+                GovernmentFriendliness = 0.55,
+                ThreatLevel = 0.4,
+                WeatherStress = 0.2,
+                PropagandaFactor = 0.1
+            }
+        });
+
+        var highPropaganda = planner.PlanArea(new AoiPlanningRequest
+        {
+            CenterLat = 36.1627,
+            CenterLon = -85.5016,
+            RadiusMiles = 30,
+            Seed = 42,
+            Criteria = new SituationCriteriaDto
+            {
+                InfrastructurePriority = 0.7,
+                CivilFriction = 0.35,
+                GovernmentFriendliness = 0.55,
+                ThreatLevel = 0.4,
+                WeatherStress = 0.2,
+                PropagandaFactor = 0.9
+            }
+        });
+
+        Assert.True(highPropaganda.SupportZones.Average(zone => zone.OpforSupport) > lowPropaganda.SupportZones.Average(zone => zone.OpforSupport));
+        Assert.True(highPropaganda.SupportZones.Average(zone => zone.BluforSupport) < lowPropaganda.SupportZones.Average(zone => zone.BluforSupport));
     }
 
     [Fact]
@@ -201,6 +266,99 @@ public sealed class SimulationTests
 
         Assert.NotEmpty(sitrep.MovementPins);
         Assert.Contains(sitrep.MovementPins, pin => pin.PinTone is "Green" or "Amber" or "Red");
+    }
+
+    [Fact]
+    public void ImportedTransportProfiles_SurfaceGroundedCivilianAndMilitaryMetrics()
+    {
+        var planner = new MockAoiPlanningService(Path.Combine(ResolveWorkspaceRoot(), "docs", "data", "upper-cumberland-realworld.json"));
+        var response = planner.PlanArea(new AoiPlanningRequest
+        {
+            CenterLat = 36.1627,
+            CenterLon = -85.5016,
+            RadiusMiles = 30,
+            Seed = 42,
+            Criteria = new SituationCriteriaDto()
+        });
+
+        var civilian = Assert.Single(response.Transportation.TransportProfiles.Where(profile => profile.ProfileId == "civilian-midsize-sedan"));
+        var military = Assert.Single(response.Transportation.TransportProfiles.Where(profile => profile.ProfileId == "military-m1a2-abrams"));
+
+        Assert.True(civilian.MaintenanceCostUsdPer1000Miles > 0);
+        Assert.True(civilian.FuelEconomyMpg > 0);
+        Assert.True(military.FuelBurnGallonsPerHourRoad > 0);
+        Assert.True(military.SurvivabilityScore > civilian.SurvivabilityScore);
+    }
+
+    [Fact]
+    public void RoughSegmentsIncreaseRouteSeverityAndSlowGroundMovement()
+    {
+        var scenario = BuildScenario();
+
+        var fastManager = new SimulationSessionManager(new StaticEnrichmentProvider(0.12, PopulationDensityBand.Sparse, 0.18, 0.14, 0.12));
+        var roughManager = new SimulationSessionManager(new StaticEnrichmentProvider(0.7, PopulationDensityBand.Sparse, 0.74, 0.72, 0.48));
+
+        var fast = fastManager.CreateSession(scenario, 9);
+        var rough = roughManager.CreateSession(scenario, 9);
+
+        fastManager.Start(fast.SessionId);
+        roughManager.Start(rough.SessionId);
+
+        for (var i = 0; i < 140; i++)
+        {
+            fastManager.AdvanceRunningSessions();
+            roughManager.AdvanceRunningSessions();
+        }
+
+        var fastGround = fastManager.GetWorldState(fast.SessionId).Movements.First(m => m.RouteId == "ground-1");
+        var roughGround = roughManager.GetWorldState(rough.SessionId).Movements.First(m => m.RouteId == "ground-1");
+
+        Assert.True(roughGround.RouteSeverityIndex > fastGround.RouteSeverityIndex);
+        Assert.True(roughGround.SurfaceAttritionFactor > fastGround.SurfaceAttritionFactor);
+        Assert.True(fastGround.Progress > roughGround.Progress);
+    }
+
+    [Fact]
+    public void BetterLoadDisciplineReducesCargoDamageRisk()
+    {
+        var disciplinedScenario = BuildScenario();
+        disciplinedScenario.Realism.UmoPlanningQuality = 0.9;
+        disciplinedScenario.Realism.LoadingTeamChiefQuality = 0.88;
+        disciplinedScenario.Realism.UseTiedowns = true;
+        disciplinedScenario.Realism.UseBlockingAndBracing = true;
+        disciplinedScenario.Realism.UsePalletRestraint = true;
+        disciplinedScenario.Realism.UseCargoIsolation = true;
+
+        var sloppyScenario = BuildScenario();
+        sloppyScenario.Realism.UmoPlanningQuality = 0.3;
+        sloppyScenario.Realism.LoadingTeamChiefQuality = 0.28;
+        sloppyScenario.Realism.UseTiedowns = false;
+        sloppyScenario.Realism.UseBlockingAndBracing = false;
+        sloppyScenario.Realism.UsePalletRestraint = false;
+        sloppyScenario.Realism.UseCargoIsolation = false;
+        sloppyScenario.Realism.WeatherSeverity = 0.6;
+        sloppyScenario.Realism.DustExposure = 0.65;
+
+        var provider = new StaticEnrichmentProvider(0.45, PopulationDensityBand.Suburban, 0.68, 0.7, 0.24);
+        var disciplinedManager = new SimulationSessionManager(provider);
+        var sloppyManager = new SimulationSessionManager(provider);
+
+        var disciplined = disciplinedManager.CreateSession(disciplinedScenario, 71);
+        var sloppy = sloppyManager.CreateSession(sloppyScenario, 71);
+
+        disciplinedManager.Start(disciplined.SessionId);
+        sloppyManager.Start(sloppy.SessionId);
+
+        for (var i = 0; i < 90; i++)
+        {
+            disciplinedManager.AdvanceRunningSessions();
+            sloppyManager.AdvanceRunningSessions();
+        }
+
+        var disciplinedGround = disciplinedManager.GetWorldState(disciplined.SessionId).Movements.First(m => m.RouteId == "ground-1");
+        var sloppyGround = sloppyManager.GetWorldState(sloppy.SessionId).Movements.First(m => m.RouteId == "ground-1");
+
+        Assert.True(disciplinedGround.CargoDamageRisk < sloppyGround.CargoDamageRisk);
     }
 
     [Fact]
@@ -250,8 +408,16 @@ public sealed class SimulationTests
                 ConfiguredLoadQuality = 0.78,
                 MaintenanceDiscipline = 0.8,
                 SecurityDiscipline = 0.75,
+                UmoPlanningQuality = 0.74,
+                LoadingTeamChiefQuality = 0.72,
+                WeatherSeverity = 0.22,
+                DustExposure = 0.25,
                 CrewEnduranceHours = 10.0,
-                UseAssistantDrivers = true
+                UseAssistantDrivers = true,
+                UseTiedowns = true,
+                UseBlockingAndBracing = true,
+                UsePalletRestraint = true,
+                UseCargoIsolation = false
             },
             Nodes =
             [
@@ -274,9 +440,9 @@ public sealed class SimulationTests
             ],
             Shipments =
             [
-                new ShipmentDefinition { ShipmentId = "ship-g", CommodityType = CommodityType.Rations, Quantity = 1000, OriginNodeId = "depot-alpha", DestinationNodeId = "fob-charlie" },
-                new ShipmentDefinition { ShipmentId = "ship-r", CommodityType = CommodityType.Fuel, Quantity = 600, OriginNodeId = "warehouse-bravo", DestinationNodeId = "base-delta" },
-                new ShipmentDefinition { ShipmentId = "ship-a", CommodityType = CommodityType.Medical, Quantity = 200, OriginNodeId = "base-delta", DestinationNodeId = "fob-charlie" }
+                new ShipmentDefinition { ShipmentId = "ship-g", CommodityType = CommodityType.Rations, Quantity = 1000, Weight = 1200, OriginNodeId = "depot-alpha", DestinationNodeId = "fob-charlie" },
+                new ShipmentDefinition { ShipmentId = "ship-r", CommodityType = CommodityType.Fuel, Quantity = 600, Weight = 1800, OriginNodeId = "warehouse-bravo", DestinationNodeId = "base-delta" },
+                new ShipmentDefinition { ShipmentId = "ship-a", CommodityType = CommodityType.Medical, Quantity = 200, Weight = 240, OriginNodeId = "base-delta", DestinationNodeId = "fob-charlie" }
             ],
             IncidentSeeds =
             [
@@ -305,11 +471,17 @@ public sealed class SimulationTests
     {
         private readonly double _congestion;
         private readonly PopulationDensityBand _band;
+        private readonly double _routeSeverity;
+        private readonly double _surfaceAttrition;
+        private readonly double _concealment;
 
-        public StaticEnrichmentProvider(double congestion, PopulationDensityBand band)
+        public StaticEnrichmentProvider(double congestion, PopulationDensityBand band, double routeSeverity = 0.24, double surfaceAttrition = 0.2, double concealment = 0.18)
         {
             _congestion = congestion;
             _band = band;
+            _routeSeverity = routeSeverity;
+            _surfaceAttrition = surfaceAttrition;
+            _concealment = concealment;
         }
 
         public EnrichmentSnapshot BuildSnapshot(ScenarioDefinition scenario, RouteDefinition route)
@@ -325,7 +497,12 @@ public sealed class SimulationTests
                     RefuelStationsPer100Km = 2,
                     RestaurantsPer100Km = 2,
                     CampgroundsPer100Km = 1,
-                    TrafficVehiclesPerHour = 1000
+                    TrafficVehiclesPerHour = 1000,
+                    RouteSeverityIndex = _routeSeverity,
+                    SurfaceAttritionFactor = _surfaceAttrition,
+                    MoralePressure = _routeSeverity * 0.65,
+                    CargoDamageRisk = _surfaceAttrition * 0.55,
+                    ConcealmentOpportunity = _concealment
                 },
                 SettlementProfile = new SettlementProfile
                 {
@@ -341,7 +518,27 @@ public sealed class SimulationTests
                     EstimatedHousingClusters = _band == PopulationDensityBand.Dense ? 15 : 3,
                     EstimatedServiceStops = _band == PopulationDensityBand.Dense ? 25 : 4,
                     EstimatedSettlementFootprints = _band == PopulationDensityBand.Dense ? 8 : 2
-                }
+                },
+                Segments =
+                [
+                    new RouteSegmentEnrichment
+                    {
+                        SegmentId = $"{route.RouteId}-seg-01",
+                        Sequence = 1,
+                        LengthMiles = 9,
+                        SurfaceType = _routeSeverity >= 0.65 ? RoadSegmentSurfaceType.Dirt : RoadSegmentSurfaceType.SecondaryPaved,
+                        ConditionState = _routeSeverity >= 0.65 ? SurfaceConditionState.Muddy : SurfaceConditionState.Dry,
+                        IsHighway = _routeSeverity < 0.4,
+                        ConnectsHighway = true,
+                        TrafficStress = _congestion,
+                        LocalHostility = _routeSeverity * 0.5,
+                        DustIndex = _routeSeverity >= 0.65 ? 0.35 : 0.08,
+                        RouteSeverityIndex = _routeSeverity,
+                        SurfaceAttritionFactor = _surfaceAttrition,
+                        ConcealmentFactor = _concealment,
+                        ChokepointRisk = _routeSeverity * 0.45
+                    }
+                ]
             };
         }
     }

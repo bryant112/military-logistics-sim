@@ -75,3 +75,74 @@
 - staff shift/fatigue model
 - fog-of-war/security uncertainty
 - AI-assisted route recommendations
+
+## Road Surface Severity TODO
+- add dynamic road surface severity for ground logistics as a documentation-first backlog item before implementation
+- evaluate ground routes segment by segment instead of corridor average
+- introduce `Route Severity Index (RSI)` as the operator-facing route condition score
+- introduce `Surface Attrition Factor (SAF)` as the internal wear, damage, and maintenance driver
+- classify imported or inferred segments into:
+  - paved interstate/highway
+  - secondary paved
+  - improved dirt/pave hybrid
+  - gravel
+  - dirt
+  - degraded mud/soft ground
+- if a segment is not a highway and not connected to a highway, default it to `improved dirt/pave hybrid` unless better source data exists
+- model both distance-based and time-based penalties:
+  - rough surfaces increase wear per mile
+  - delay, mud, stop-start movement, and poor traction add time-based stress
+- use separate coefficients by vehicle family:
+  - civilian cars/SUVs/pickups
+  - civilian bus/freight
+  - tactical wheeled military vehicles
+  - tracked military vehicles
+- make route severity affect:
+  - speed
+  - fuel burn
+  - maintenance accumulation
+  - breakdown frequency
+  - crew fatigue
+  - morale
+  - cargo damage risk
+  - concealment/signature tradeoff
+- allow tracked vehicles to outperform wheeled vehicles off-road while paying higher paved-route fuel and maintenance penalties
+- scale effects realistically by load weight, with light liaison movement receiving smaller penalties than tankers, freight trucks, and heavy tactical loads
+- use hostile local areas as paved-route chokepoint amplifiers in the first pass:
+  - paved and highway routes are easier to block, inspect, and officially restrict
+  - rough back-road routes are slower and harsher but less governed
+- include dust as a concealment breaker on dry rough routes so dirt-road movement is not automatically stealthier
+- treat weather as a future dynamic input that can transform segment condition:
+  - dirt to mud/soft ground
+  - gravel to degraded gravel
+  - paved to reduced-traction paved
+
+## Cargo Damage TODO
+- add cargo-damage and load-protection modeling tied to route severity
+- represent cargo quality control with two separate ratings:
+  - `UMO planning quality`
+  - `Loading Team Chief execution quality`
+- let cargo damage risk be influenced by:
+  - surface severity
+  - weather
+  - vehicle family
+  - load weight
+  - UMO planning quality
+  - Loading Team Chief quality
+  - cargo securement systems
+- model cargo-securement mitigation before advanced vehicle kits:
+  - tiedowns
+  - blocking/bracing
+  - pallet restraint
+  - cargo isolation / shock reduction
+
+## Future Questions
+- should morale become a first-class simulation stat or remain a derived modifier feeding fatigue, reporting, and performance
+- how many surface subclasses can the model support before it becomes too granular to tune
+- how should bridges, steep grades, and washout-prone segments affect RSI and denial risk
+- should different commodity classes have different shock and damage tolerances
+- how should convoy spacing interact with dust and visibility on dirt roads
+- do we want road-improvement actions later, such as engineers or local contractors reducing RSI on key segments
+- how should railheads, airfields, and transfer nodes inherit nearby road severity for last-mile distribution
+- which cargo-securement systems should be explicit equipment versus folded into quality ratings
+- add a later-version reminder to build a simulated weather system that can drive route condition changes dynamically

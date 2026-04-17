@@ -53,6 +53,9 @@ public sealed class LogisticsOverviewDto
     public double SecurityDiscipline { get; set; }
     public double AverageCrewFatigueIndex { get; set; }
     public double AverageMaintenanceBacklog { get; set; }
+    public double AverageMorale { get; set; }
+    public double AverageRouteSeverityIndex { get; set; }
+    public double AverageCargoDamageRisk { get; set; }
 }
 
 public sealed class MovementStateDto
@@ -70,6 +73,11 @@ public sealed class MovementStateDto
     public double ReportingConfidence { get; set; }
     public double SupportScore { get; set; }
     public double ThreatExposure { get; set; }
+    public double Morale { get; set; }
+    public double CargoDamageRisk { get; set; }
+    public double ConcealmentScore { get; set; }
+    public double RouteSeverityIndex { get; set; }
+    public double SurfaceAttritionFactor { get; set; }
 }
 
 public sealed class AssetStateDto
