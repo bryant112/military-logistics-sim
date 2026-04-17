@@ -62,8 +62,59 @@
                     </StackPanel>
                 </Grid>
 
+                <TextBlock FontSize="16" FontWeight="SemiBold" Text="Imported Transport Data" Margin="0,0,0,8" />
+                <TextBlock Text="{Binding TransportationSummary}" TextWrapping="Wrap" Margin="0,0,0,8" />
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Height="160">
+                    <StackPanel>
+                        <TextBlock FontWeight="SemiBold" Text="Counties" />
+                        <ItemsControl ItemsSource="{Binding RegionalCounties}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding ., StringFormat='• {0}'}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <TextBlock FontWeight="SemiBold" Text="Highway Corridors" Margin="0,8,0,0" />
+                        <ItemsControl ItemsSource="{Binding HighwayCorridors}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding ., StringFormat='• {0}'}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <TextBlock FontWeight="SemiBold" Text="Transit Services" Margin="0,8,0,0" />
+                        <ItemsControl ItemsSource="{Binding TransitServices}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding ., StringFormat='• {0}'}" TextWrapping="Wrap" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <TextBlock FontSize="16" FontWeight="SemiBold" Text="Imported Features" Margin="0,12,0,8" />
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Height="160">
+                    <ItemsControl ItemsSource="{Binding ImportedFeatures}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Margin="0,0,0,8" Padding="8" CornerRadius="6" Background="#24303B">
+                                    <StackPanel>
+                                        <TextBlock FontWeight="SemiBold" Text="{Binding Name}" />
+                                        <TextBlock Text="{Binding Category, StringFormat='Category: {0}'}" />
+                                        <TextBlock Text="{Binding County, StringFormat='County: {0}'}" />
+                                        <TextBlock Text="{Binding Notes}" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
                 <TextBlock FontSize="16" FontWeight="SemiBold" Text="Random Objectives" Margin="0,0,0,8" />
-                <ScrollViewer VerticalScrollBarVisibility="Auto" Height="180">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Height="150">
                     <ItemsControl ItemsSource="{Binding Objectives}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
@@ -81,7 +132,7 @@
                 </ScrollViewer>
 
                 <TextBlock FontSize="16" FontWeight="SemiBold" Text="10 sq mi Support Zones" Margin="0,12,0,8" />
-                <ScrollViewer VerticalScrollBarVisibility="Auto" Height="180">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Height="120">
                     <ItemsControl ItemsSource="{Binding SupportZones}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>

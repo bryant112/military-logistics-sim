@@ -40,6 +40,8 @@ public sealed class AoiDescriptorDto
 public sealed class TransportationAreaSummaryDto
 {
     public string DataSource { get; set; } = "mock-us-firstlook-v1";
+    public bool IsImportedRegionalSnapshot { get; set; }
+    public string DatasetCoverage { get; set; } = string.Empty;
     public int MajorRoadSegments { get; set; }
     public int RailConnections { get; set; }
     public int Airfields { get; set; }
@@ -49,6 +51,18 @@ public sealed class TransportationAreaSummaryDto
     public int ArmyCorpsCampgrounds { get; set; }
     public double AverageSpeedLimitKph { get; set; }
     public double TrafficVehiclesPerHour { get; set; }
+    public List<string> Counties { get; set; } = new();
+    public List<string> HighwayCorridors { get; set; } = new();
+    public List<string> TransitServices { get; set; } = new();
+    public List<ImportedFeatureDto> FeatureHighlights { get; set; } = new();
+}
+
+public sealed class ImportedFeatureDto
+{
+    public string Category { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string County { get; set; } = string.Empty;
+    public string Notes { get; set; } = string.Empty;
 }
 
 public sealed class ObjectiveDto

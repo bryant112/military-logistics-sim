@@ -158,11 +158,11 @@ public sealed class SimulationTests
     [Fact]
     public void AoiPlanner_BuildsUsaOnlyObjectivesAndSupportZones()
     {
-        var planner = new MockAoiPlanningService();
+        var planner = new MockAoiPlanningService(Path.Combine(ResolveWorkspaceRoot(), "docs", "data", "upper-cumberland-realworld.json"));
         var response = planner.PlanArea(new AoiPlanningRequest
         {
             CenterLat = 36.1627,
-            CenterLon = -86.7816,
+            CenterLon = -85.5016,
             RadiusMiles = 30,
             Seed = 42,
             Criteria = new SituationCriteriaDto
@@ -178,6 +178,9 @@ public sealed class SimulationTests
         Assert.True(response.IsWithinUsa);
         Assert.NotEmpty(response.Objectives);
         Assert.NotEmpty(response.SupportZones);
+        Assert.True(response.Transportation.IsImportedRegionalSnapshot);
+        Assert.Contains("Putnam", response.Transportation.Counties);
+        Assert.Contains(response.Transportation.FeatureHighlights, feature => feature.Name.Contains("Upper Cumberland Regional Airport", StringComparison.OrdinalIgnoreCase));
         Assert.All(response.SupportZones, z => Assert.Equal(10.0, z.AreaSquareMiles));
     }
 
@@ -280,6 +283,22 @@ public sealed class SimulationTests
                 new IncidentSeedDefinition { IncidentType = IncidentType.Ambush, Severity = Severity.Medium, RouteId = "ground-1", Probability = 0.4, CameraRefs = ["drone-01"] }
             ]
         };
+    }
+
+    private static string ResolveWorkspaceRoot()
+    {
+        var current = new DirectoryInfo(AppContext.BaseDirectory);
+        while (current is not null)
+        {
+            if (File.Exists(Path.Combine(current.FullName, "MilitaryLogisticsSim.sln")))
+            {
+                return current.FullName;
+            }
+
+            current = current.Parent;
+        }
+
+        throw new DirectoryNotFoundException("Could not locate workspace root.");
     }
 
     private sealed class StaticEnrichmentProvider : IEnrichmentProvider

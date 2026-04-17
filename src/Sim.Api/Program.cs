@@ -7,11 +7,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 var rootPath = ResolveWorkspaceRoot();
 var starterScenarioPath = Path.Combine(rootPath, "schemas", "08_starter_scenario.json");
+var upperCumberlandSnapshotPath = Path.Combine(rootPath, "docs", "data", "upper-cumberland-realworld.json");
 
 builder.Services.AddSingleton(new ScenarioValidationService());
 builder.Services.AddSingleton<IScenarioSource>(new FileScenarioSource(starterScenarioPath));
 builder.Services.AddSingleton<IEnrichmentProvider, MockEnrichmentProvider>();
-builder.Services.AddSingleton<IAoiPlanningService, MockAoiPlanningService>();
+builder.Services.AddSingleton<IAoiPlanningService>(new MockAoiPlanningService(upperCumberlandSnapshotPath));
 builder.Services.AddSingleton<ISimulationSessionManager, SimulationSessionManager>();
 builder.Services.AddHostedService<SimulationTickerHostedService>();
 

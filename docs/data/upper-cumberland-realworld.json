@@ -1,0 +1,89 @@
+{
+  "regionName": "Upper Cumberland, Tennessee",
+  "centerLat": 36.1628,
+  "centerLon": -85.5016,
+  "matchRadiusMiles": 65.0,
+  "datasetCoverage": "Official 14-county Upper Cumberland footprint plus central-area OpenStreetMap amenity counts around Cookeville (30 km radius).",
+  "counties": [
+    "Cannon",
+    "Clay",
+    "Cumberland",
+    "DeKalb",
+    "Fentress",
+    "Jackson",
+    "Macon",
+    "Overton",
+    "Pickett",
+    "Putnam",
+    "Smith",
+    "Van Buren",
+    "Warren",
+    "White"
+  ],
+  "highwayCorridors": [
+    "Interstate 40",
+    "US-70N / SR-24 corridor",
+    "US-70",
+    "US-70S",
+    "SR-111",
+    "US-127 / SR-28",
+    "SR-53 / US-25 approach to Cordell Hull",
+    "SR-56"
+  ],
+  "transitServices": [
+    "Go Upper Cumberland fixed-route service",
+    "Ride Upper Cumberland demand-response service",
+    "Pick Up Upper Cumberland after-hours rideshare linkage",
+    "Connect Upper Cumberland intercity bus on I-40 / I-24 routes"
+  ],
+  "summary": {
+    "dataSource": "upper-cumberland-regional-import-v1",
+    "majorRoadSegments": 753,
+    "railConnections": 1,
+    "airfields": 8,
+    "fuelSites": 72,
+    "restaurants": 103,
+    "campgrounds": 6,
+    "armyCorpsCampgrounds": 2,
+    "baselineSpeedLimitKph": 88.0,
+    "baselineTrafficVehiclesPerHour": 1100.0
+  },
+  "featureHighlights": [
+    {
+      "category": "Airport",
+      "name": "Upper Cumberland Regional Airport (SRB)",
+      "county": "White / Putnam",
+      "notes": "Regional airport near the Putnam-White county line with a 6,000-foot asphalt runway."
+    },
+    {
+      "category": "Airport",
+      "name": "Crossville Memorial Airport / Whitson Field (CSV)",
+      "county": "Cumberland",
+      "notes": "General aviation and corporate airport in Crossville."
+    },
+    {
+      "category": "Rail",
+      "name": "Caney Fork & Western Railroad",
+      "county": "White",
+      "notes": "Regional rail service continuing the former Sparta Branch corridor."
+    },
+    {
+      "category": "Transit",
+      "name": "Connect Upper Cumberland",
+      "county": "Regional",
+      "notes": "Intercity bus service linking the region westbound on I-40 and I-24 corridors."
+    },
+    {
+      "category": "Campground",
+      "name": "Defeated Creek Park",
+      "county": "Smith",
+      "notes": "USACE Cordell Hull Lake campground with 155 campsites."
+    },
+    {
+      "category": "Campground",
+      "name": "Tailwater Recreation Area",
+      "county": "Smith",
+      "notes": "USACE day-use recreation area below Cordell Hull Dam near Carthage."
+    }
+  ]
+}

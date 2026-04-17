@@ -19,7 +19,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private string _logisticsOverview = "Realism profile not loaded yet.";
     private string _sitrepOverview = "SITREP not loaded yet.";
     private double _aoiCenterLat = 36.1627;
-    private double _aoiCenterLon = -86.7816;
+    private double _aoiCenterLon = -85.5016;
     private double _aoiRadiusMiles = 30;
     private double _infrastructurePriority = 0.7;
     private double _civilFriction = 0.35;
@@ -27,6 +27,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private double _threatLevel = 0.4;
     private double _weatherStress = 0.2;
     private string _planningStatus = "AO planner idle.";
+    private string _transportationSummary = "No imported transport data loaded yet.";
 
     public string StatusMessage
     {
@@ -112,6 +113,12 @@ public partial class MainWindowViewModel : ViewModelBase
         private set => SetProperty(ref _planningStatus, value);
     }
 
+    public string TransportationSummary
+    {
+        get => _transportationSummary;
+        private set => SetProperty(ref _transportationSummary, value);
+    }
+
     public ObservableCollection<MovementStateDto> Movements { get; } = new();
     public ObservableCollection<IncidentDto> Incidents { get; } = new();
     public ObservableCollection<AssetStateDto> Assets { get; } = new();
@@ -120,6 +127,10 @@ public partial class MainWindowViewModel : ViewModelBase
     public ObservableCollection<ObjectiveDto> Objectives { get; } = new();
     public ObservableCollection<SupportZoneDto> SupportZones { get; } = new();
     public ObservableCollection<MovementPinDto> SitrepPins { get; } = new();
+    public ObservableCollection<string> RegionalCounties { get; } = new();
+    public ObservableCollection<string> HighwayCorridors { get; } = new();
+    public ObservableCollection<string> TransitServices { get; } = new();
+    public ObservableCollection<ImportedFeatureDto> ImportedFeatures { get; } = new();
 
     public IAsyncRelayCommand PlanAoCommand { get; }
     public IAsyncRelayCommand CreateSessionCommand { get; }
@@ -169,7 +180,12 @@ public partial class MainWindowViewModel : ViewModelBase
 
             ReplaceCollection(Objectives, plan.Objectives);
             ReplaceCollection(SupportZones, plan.SupportZones);
+            ReplaceCollection(RegionalCounties, plan.Transportation.Counties);
+            ReplaceCollection(HighwayCorridors, plan.Transportation.HighwayCorridors);
+            ReplaceCollection(TransitServices, plan.Transportation.TransitServices);
+            ReplaceCollection(ImportedFeatures, plan.Transportation.FeatureHighlights);
             PlanningStatus = $"{plan.ValidationMessage} Roads {plan.Transportation.MajorRoadSegments}, fuel sites {plan.Transportation.FuelSites}, Army Corps campgrounds {plan.Transportation.ArmyCorpsCampgrounds}.";
+            TransportationSummary = $"{plan.Transportation.DataSource} | {plan.Transportation.DatasetCoverage} | speed baseline {plan.Transportation.AverageSpeedLimitKph:F1} kph | traffic {plan.Transportation.TrafficVehiclesPerHour:F0} vph";
             StatusMessage = "AO planning complete.";
         }
         catch (Exception ex)
