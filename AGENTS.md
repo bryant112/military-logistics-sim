@@ -10,7 +10,7 @@
 
 - GitHub repository: `https://github.com/bryant112/military-logistics-sim`
 - Default branch: `main`
-- Local path used during bootstrap: `C:\dev\military-logistics-sim`
+- Local path used during bootstrap: `~/dev/work/military-logistics-sim` on WSL/Linux or `C:\dev\military-logistics-sim` on Windows
 
 ## Project Context
 

@@ -22,8 +22,8 @@ This repository contains a first runnable slice of a backend-authoritative milit
 
 ## Run API
 
-```powershell
-$env:DOTNET_CLI_HOME='C:\dev\.dotnet'
+```bash
+export DOTNET_CLI_HOME="${HOME}/.dotnet"
 dotnet run --project src/Sim.Api/Sim.Api.csproj
 ```
 
@@ -31,8 +31,8 @@ API binds to `http://localhost:5080`.
 
 ## Run Operator Client
 
-```powershell
-$env:DOTNET_CLI_HOME='C:\dev\.dotnet'
+```bash
+export DOTNET_CLI_HOME="${HOME}/.dotnet"
 dotnet run --project src/Operator.Client/Operator.Client.csproj
 ```
 
@@ -44,7 +44,21 @@ Use the UI buttons in order:
 
 ## Test
 
-```powershell
-$env:DOTNET_CLI_HOME='C:\dev\.dotnet'
+```bash
+export DOTNET_CLI_HOME="${HOME}/.dotnet"
 dotnet test tests/Sim.Tests/Sim.Tests.csproj
 ```
+
+Windows fallback uses the same `dotnet` commands with `DOTNET_CLI_HOME` pointed at your Windows SDK cache location.
+
+## Dev Toolbar
+
+- Run common workflows from terminal:
+  - `./scripts/dev-toolbar.sh start`
+  - `./scripts/dev-toolbar.sh build`
+  - `./scripts/dev-toolbar.sh test`
+  - `./scripts/dev-toolbar.sh lint`
+  - `./scripts/dev-toolbar.sh deploy` (safe stub)
+  - `./scripts/dev-toolbar.sh git-pull`
+  - `./scripts/dev-toolbar.sh git-push`
+- VS Code task labels use the same command set: `dev:*` and `git:*`.
